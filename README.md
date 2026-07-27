@@ -4,7 +4,7 @@ Landing de una sola página (`index.html`) con los pasos para que el cliente pon
 
 ## Para dejarla lista
 
-1. **El zip del dashboard:** poné el archivo `dashboard.zip` en esta misma carpeta. El botón "Descargar dashboard.zip" del paso 1 apunta ahí.
+1. **El zip del dashboard:** el botón del paso 1 apunta a Google Drive (`https://drive.google.com/uc?export=download&id=1u5t9XGNQZjLthAleTf07PHDr5F6xUGrt`). Para cambiar el archivo, actualizá ese link en `index.html`.
 2. **El Loom:** cuando tengas el video, abrí `index.html`, buscá el bloque `loom-frame` (al final) y reemplazá el placeholder por:
 
    ```html
