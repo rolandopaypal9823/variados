@@ -1,254 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configurá tu Dashboard</title>
-  <style>
-    :root {
-      --bg: #0b0c10;
-      --card: #14161d;
-      --card-2: #1b1e27;
-      --line: #262a36;
-      --text: #f4f5f7;
-      --muted: #9aa0ac;
-      --accent: #6c5ce7;
-      --accent-2: #a29bfe;
-      --ok: #00d09c;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Configurá tu Dashboard · FlowScale</title>
+<meta name="description" content="Poné tu dashboard a andar en minutos. Cinco pasos simples, con tus datos de Meta." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --canvas:#F8F0E1; --canvas-2:#F2E5CD; --card:#FFFFFF;
+  --ink:#38302A; --body:#6B6055; --mute:#9A8B7B;
+  --accent:#C96F45; --accent-deep:#AC5A31; --accent-soft:#F7E3D3;
+  --blue:#6E8FA6; --blue-deep:#4E708A; --blue-soft:#E4EBF1;
+  --green:#6F9A5E; --green-deep:#57804A; --green-soft:#EAF3E2;
+  --amber:#D9A441; --amber-deep:#B5842B; --amber-soft:#F8EED8;
+  --hairline:#EADFC9; --line:#DCCFB5;
+  --shadow-elevated:0 24px 70px rgba(46,42,36,.16);
+  --shadow-cta:0 12px 30px rgba(201,111,69,.28);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--sans);color:var(--body);background:var(--canvas);
+  line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased;
+  min-height:100vh;position:relative;overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:var(--serif);color:var(--ink);letter-spacing:-.015em;line-height:1.12;font-weight:600}
+strong,b{color:var(--ink);font-weight:600}
+img{max-width:100%;height:auto;display:block}
+.it{font-style:italic;font-weight:500;color:var(--accent)}
+a{color:inherit}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+/* fondo con blobs */
+.blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;pointer-events:none}
+.blob.b1{width:52vw;height:52vw;background:var(--accent-soft);top:-22vw;right:-16vw}
+.blob.b2{width:42vw;height:42vw;background:#EDE9DA;bottom:-18vw;left:-14vw}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 50% -10%, #1a1440 0%, var(--bg) 55%);
-      color: var(--text);
-      line-height: 1.55;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
+.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:72px 22px 96px}
 
-    .wrap {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 64px 20px 96px;
-    }
+/* marca */
+.brand{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--serif);font-weight:600;color:var(--ink);font-size:1.05rem;margin-bottom:34px}
 
-    /* Header */
-    header { text-align: center; margin-bottom: 48px; }
+/* header */
+header{text-align:center;margin-bottom:44px}
+.tagline{font-size:.76rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:inline-block}
+h1{font-size:clamp(2rem,5.6vw,2.9rem);text-wrap:balance}
+.lead{font-size:1.08rem;color:var(--body);margin:16px auto 0;max-width:500px;text-wrap:balance}
 
-    .badge {
-      display: inline-block;
-      font-size: 13px;
-      letter-spacing: .5px;
-      text-transform: uppercase;
-      color: var(--accent-2);
-      background: rgba(108, 92, 231, .12);
-      border: 1px solid rgba(108, 92, 231, .35);
-      padding: 6px 14px;
-      border-radius: 999px;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
+/* pasos */
+.steps{display:flex;flex-direction:column;gap:16px}
+.step{
+  display:flex;gap:18px;background:var(--card);border:1px solid var(--hairline);
+  border-radius:22px;box-shadow:0 10px 30px rgba(46,42,36,.06);
+  padding:24px 26px;transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease);
+}
+.step:hover{transform:translateY(-3px);box-shadow:var(--shadow-elevated);border-color:var(--line)}
+.num{
+  flex:0 0 46px;height:46px;width:46px;display:grid;place-items:center;border-radius:14px;
+  background:var(--accent-soft);color:var(--accent-deep);
+  font-family:var(--serif);font-weight:600;font-size:1.35rem;
+}
+.step-body{min-width:0}
+.step-body h3{font-size:1.24rem;margin-bottom:5px}
+.step-body p{color:var(--body);font-size:1rem}
+.step-body p code{
+  font-family:var(--sans);background:var(--canvas-2);border:1px solid var(--line);
+  padding:1px 8px;border-radius:7px;font-size:.85em;font-weight:600;color:var(--accent-deep);white-space:nowrap;
+}
+.step-body a.inline{color:var(--accent-deep);text-decoration:none;font-weight:600;border-bottom:1.5px solid var(--accent-soft)}
+.step-body a.inline:hover{border-color:var(--accent)}
 
-    h1 {
-      font-size: clamp(28px, 5vw, 42px);
-      line-height: 1.15;
-      font-weight: 800;
-      letter-spacing: -.5px;
-      margin-bottom: 14px;
-    }
+/* boton descarga */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--sans);font-weight:600;font-size:1.02rem;padding:15px 28px;
+  border-radius:999px;border:none;text-decoration:none;cursor:pointer;
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease);
+}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow-cta)}
+.btn-primary:hover{transform:translateY(-2px)}
+.dl-btn{margin-top:16px}
+.dl-btn svg{width:18px;height:18px}
 
-    h1 .grad {
-      background: linear-gradient(90deg, var(--accent-2), #74b9ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+/* seccion loom */
+.loom-section{
+  margin-top:56px;background:var(--card);border:1px solid var(--hairline);
+  border-radius:26px;box-shadow:var(--shadow-elevated);padding:34px 30px;text-align:center;
+}
+.loom-section .tg{
+  display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--blue-deep);background:var(--blue-soft);padding:5px 13px;border-radius:999px;margin-bottom:14px;
+}
+.loom-section h2{font-size:1.55rem;margin-bottom:6px}
+.loom-section p.muted{color:var(--mute);margin-bottom:24px}
+.loom-frame{
+  position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;
+  border:1px solid var(--hairline);background:var(--canvas-2);
+}
+.loom-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 
-    .sub {
-      color: var(--muted);
-      font-size: 18px;
-      max-width: 520px;
-      margin: 0 auto;
-    }
+footer{text-align:center;color:var(--mute);font-size:.9rem;margin-top:44px}
 
-    /* Steps */
-    .steps { display: flex; flex-direction: column; gap: 16px; }
-
-    .step {
-      display: flex;
-      gap: 18px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 22px 24px;
-      transition: border-color .2s, transform .2s;
-    }
-    .step:hover { border-color: rgba(108, 92, 231, .5); transform: translateY(-2px); }
-
-    .num {
-      flex: 0 0 42px;
-      height: 42px;
-      width: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      font-weight: 800;
-      font-size: 18px;
-      color: #fff;
-    }
-
-    .step-body h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .step-body p { color: var(--muted); font-size: 15.5px; }
-    .step-body p code {
-      background: var(--card-2);
-      border: 1px solid var(--line);
-      padding: 1px 7px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      color: var(--accent-2);
-    }
-    .step-body a.inline { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid rgba(162,155,254,.4); }
-    .step-body a.inline:hover { border-color: var(--accent-2); }
-
-    /* Download button inside step 1 */
-    .dl-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 14px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 15.5px;
-      padding: 12px 22px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(108, 92, 231, .35);
-      transition: transform .15s, box-shadow .2s;
-    }
-    .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(108, 92, 231, .5); }
-    .dl-btn svg { width: 18px; height: 18px; }
-
-    /* Loom section */
-    .loom-section {
-      margin-top: 56px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 32px 28px;
-      text-align: center;
-    }
-    .loom-section h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-    .loom-section p.muted { color: var(--muted); margin-bottom: 22px; }
-
-    .loom-frame {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 14px;
-      border: 1px dashed var(--line);
-      background: var(--card-2);
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
-    .loom-frame iframe { width: 100%; height: 100%; border: 0; }
-    .loom-placeholder { text-align: center; color: var(--muted); padding: 20px; }
-    .loom-placeholder .play {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: rgba(108,92,231,.15);
-      border: 1px solid rgba(108,92,231,.4);
-      display: grid; place-items: center;
-      margin: 0 auto 14px;
-    }
-    .loom-placeholder .play svg { width: 26px; height: 26px; fill: var(--accent-2); }
-
-    footer { text-align: center; color: var(--muted); font-size: 13.5px; margin-top: 48px; }
-
-    @media (max-width: 520px) {
-      .step { padding: 18px; gap: 14px; }
-      .num { flex-basis: 38px; width: 38px; height: 38px; font-size: 16px; }
-    }
-  </style>
+@media(max-width:560px){
+  .wrap{padding:56px 18px 80px}
+  .step{padding:20px;gap:15px}
+  .num{flex-basis:42px;width:42px;height:42px;font-size:1.2rem}
+  .step-body h3{font-size:1.14rem}
+}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <span class="badge">Configuración en minutos</span>
-      <h1>Poné tu <span class="grad">dashboard</span> a andar</h1>
-      <p class="sub">Seguí estos pasos y en un rato tenés tu tablero funcionando con tus datos de Meta.</p>
-    </header>
+<span class="blob b1"></span><span class="blob b2"></span>
 
-    <div class="steps">
+<div class="wrap">
 
-      <!-- Paso 1 -->
-      <div class="step">
-        <div class="num">1</div>
-        <div class="step-body">
-          <h3>Descargá tu dashboard</h3>
-          <p>Bajate el archivo desde acá. Es una carpeta comprimida (.zip) con todo lo que necesitás.</p>
-          <a class="dl-btn" href="https://drive.google.com/uc?export=download&id=1u5t9XGNQZjLthAleTf07PHDr5F6xUGrt" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Descargar dashboard.zip
-          </a>
-        </div>
-      </div>
-
-      <!-- Paso 2 -->
-      <div class="step">
-        <div class="num">2</div>
-        <div class="step-body">
-          <h3>Descomprimí la carpeta</h3>
-          <p>Hacé click derecho sobre el <code>.zip</code> y elegí <code>Extraer</code> (o <code>Descomprimir</code>). Vas a tener una carpeta lista para usar.</p>
-        </div>
-      </div>
-
-      <!-- Paso 3 -->
-      <div class="step">
-        <div class="num">3</div>
-        <div class="step-body">
-          <h3>Entrá a Netlify y creá tu cuenta</h3>
-          <p>Andá a <a class="inline" href="https://www.netlify.com" target="_blank" rel="noopener">netlify.app</a> y registrate. Es gratis y te lleva un minuto.</p>
-        </div>
-      </div>
-
-      <!-- Paso 4 -->
-      <div class="step">
-        <div class="num">4</div>
-        <div class="step-body">
-          <h3>Creá un proyecto y subí la carpeta</h3>
-          <p>Dentro de Netlify creá un proyecto nuevo y arrastrá la carpeta que descomprimiste. Netlify la publica solita y te da tu link.</p>
-        </div>
-      </div>
-
-      <!-- Paso 5 -->
-      <div class="step">
-        <div class="num">5</div>
-        <div class="step-body">
-          <h3>Exportá tus datos de Meta</h3>
-          <p>Una vez adentro, andá a tu <code>Meta Business</code> → <code>Contenido</code> → <code>Exportar datos</code>. Descargalos y subilos a tu dashboard. ¡Listo!</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Loom al final -->
-    <div class="loom-section">
-      <h2>¿Preferís verlo en video?</h2>
-      <p class="muted">Acá te dejo todos los pasos explicados en un Loom.</p>
-      <div class="loom-frame">
-        <iframe src="https://www.loom.com/embed/380222eeadf04b719a779e9252dab263" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-      </div>
-    </div>
-
-    <footer>¿Trabaste en algún paso? Escribime y lo resolvemos al toque.</footer>
+  <div class="brand">
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none"><path d="M3 12c3.5-4 7-4 10.5 0s7 4 10.5 0" stroke="#C96F45" stroke-width="3" stroke-linecap="round"/><path d="M3 20c3.5-4 7-4 10.5 0s7 4 10.5 0" stroke="#C96F45" stroke-width="3" stroke-linecap="round" opacity=".5"/></svg>
+    FlowScale
   </div>
+
+  <header>
+    <span class="tagline">Configuración en minutos</span>
+    <h1>Poné tu dashboard <span class="it">a andar</span></h1>
+    <p class="lead">Seguí estos cinco pasos y en un rato tenés tu tablero funcionando con tus datos de Meta.</p>
+  </header>
+
+  <div class="steps">
+
+    <!-- Paso 1 -->
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-body">
+        <h3>Descargá tu dashboard</h3>
+        <p>Bajate el archivo desde acá. Es una carpeta comprimida (.zip) con todo lo que necesitás.</p>
+        <a class="btn btn-primary dl-btn" href="https://drive.google.com/uc?export=download&id=1u5t9XGNQZjLthAleTf07PHDr5F6xUGrt" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar el dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Paso 2 -->
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-body">
+        <h3>Descomprimí la carpeta</h3>
+        <p>Hacé click derecho sobre el <code>.zip</code> y elegí <code>Extraer</code> (o <code>Descomprimir</code>). Vas a tener una carpeta lista para usar.</p>
+      </div>
+    </div>
+
+    <!-- Paso 3 -->
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-body">
+        <h3>Entrá a Netlify y creá tu cuenta</h3>
+        <p>Andá a <a class="inline" href="https://www.netlify.com" target="_blank" rel="noopener">netlify.app</a> y registrate. Es gratis y te lleva un minuto.</p>
+      </div>
+    </div>
+
+    <!-- Paso 4 -->
+    <div class="step">
+      <div class="num">4</div>
+      <div class="step-body">
+        <h3>Creá un proyecto y subí la carpeta</h3>
+        <p>Dentro de Netlify creá un proyecto nuevo y arrastrá la carpeta que descomprimiste. Netlify la publica solita y te da tu link.</p>
+      </div>
+    </div>
+
+    <!-- Paso 5 -->
+    <div class="step">
+      <div class="num">5</div>
+      <div class="step-body">
+        <h3>Exportá tus datos de Meta</h3>
+        <p>Una vez adentro, andá a tu <code>Meta Business</code> → <code>Contenido</code> → <code>Exportar datos</code>. Descargalos y subilos a tu dashboard. ¡Listo!</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loom al final -->
+  <div class="loom-section">
+    <span class="tg">Paso a paso en video</span>
+    <h2>¿Preferís <span class="it">verlo</span>?</h2>
+    <p class="muted">Acá te dejo todos los pasos explicados en un Loom.</p>
+    <div class="loom-frame">
+      <iframe src="https://www.loom.com/embed/380222eeadf04b719a779e9252dab263" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <footer>¿Trabaste en algún paso? Escribime y lo resolvemos al toque.</footer>
+
+</div>
 </body>
 </html>
