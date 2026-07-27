@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurá tu Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #14161d;
+      --card-2: #1b1e27;
+      --line: #262a36;
+      --text: #f4f5f7;
+      --muted: #9aa0ac;
+      --accent: #6c5ce7;
+      --accent-2: #a29bfe;
+      --ok: #00d09c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #1a1440 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 64px 20px 96px;
+    }
+
+    /* Header */
+    header { text-align: center; margin-bottom: 48px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 13px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      background: rgba(108, 92, 231, .12);
+      border: 1px solid rgba(108, 92, 231, .35);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 14px;
+    }
+
+    h1 .grad {
+      background: linear-gradient(90deg, var(--accent-2), #74b9ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+
+    .step {
+      display: flex;
+      gap: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .step:hover { border-color: rgba(108, 92, 231, .5); transform: translateY(-2px); }
+
+    .num {
+      flex: 0 0 42px;
+      height: 42px;
+      width: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+    }
+
+    .step-body h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .step-body p { color: var(--muted); font-size: 15.5px; }
+    .step-body p code {
+      background: var(--card-2);
+      border: 1px solid var(--line);
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      color: var(--accent-2);
+    }
+    .step-body a.inline { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid rgba(162,155,254,.4); }
+    .step-body a.inline:hover { border-color: var(--accent-2); }
+
+    /* Download button inside step 1 */
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15.5px;
+      padding: 12px 22px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(108, 92, 231, .35);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(108, 92, 231, .5); }
+    .dl-btn svg { width: 18px; height: 18px; }
+
+    /* Loom section */
+    .loom-section {
+      margin-top: 56px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+    }
+    .loom-section h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .loom-section p.muted { color: var(--muted); margin-bottom: 22px; }
+
+    .loom-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 14px;
+      border: 1px dashed var(--line);
+      background: var(--card-2);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .loom-frame iframe { width: 100%; height: 100%; border: 0; }
+    .loom-placeholder { text-align: center; color: var(--muted); padding: 20px; }
+    .loom-placeholder .play {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(108,92,231,.15);
+      border: 1px solid rgba(108,92,231,.4);
+      display: grid; place-items: center;
+      margin: 0 auto 14px;
+    }
+    .loom-placeholder .play svg { width: 26px; height: 26px; fill: var(--accent-2); }
+
+    footer { text-align: center; color: var(--muted); font-size: 13.5px; margin-top: 48px; }
+
+    @media (max-width: 520px) {
+      .step { padding: 18px; gap: 14px; }
+      .num { flex-basis: 38px; width: 38px; height: 38px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="badge">Configuración en minutos</span>
+      <h1>Poné tu <span class="grad">dashboard</span> a andar</h1>
+      <p class="sub">Seguí estos pasos y en un rato tenés tu tablero funcionando con tus datos de Meta.</p>
+    </header>
+
+    <div class="steps">
+
+      <!-- Paso 1 -->
+      <div class="step">
+        <div class="num">1</div>
+        <div class="step-body">
+          <h3>Descargá tu dashboard</h3>
+          <p>Bajate el archivo desde acá. Es una carpeta comprimida (.zip) con todo lo que necesitás.</p>
+          <a class="dl-btn" href="dashboard.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Descargar dashboard.zip
+          </a>
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="step">
+        <div class="num">2</div>
+        <div class="step-body">
+          <h3>Descomprimí la carpeta</h3>
+          <p>Hacé click derecho sobre el <code>.zip</code> y elegí <code>Extraer</code> (o <code>Descomprimir</code>). Vas a tener una carpeta lista para usar.</p>
+        </div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="step">
+        <div class="num">3</div>
+        <div class="step-body">
+          <h3>Entrá a Netlify y creá tu cuenta</h3>
+          <p>Andá a <a class="inline" href="https://www.netlify.com" target="_blank" rel="noopener">netlify.app</a> y registrate. Es gratis y te lleva un minuto.</p>
+        </div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div class="step">
+        <div class="num">4</div>
+        <div class="step-body">
+          <h3>Creá un proyecto y subí la carpeta</h3>
+          <p>Dentro de Netlify creá un proyecto nuevo y arrastrá la carpeta que descomprimiste. Netlify la publica solita y te da tu link.</p>
+        </div>
+      </div>
+
+      <!-- Paso 5 -->
+      <div class="step">
+        <div class="num">5</div>
+        <div class="step-body">
+          <h3>Exportá tus datos de Meta</h3>
+          <p>Una vez adentro, andá a tu <code>Meta Business</code> → <code>Contenido</code> → <code>Exportar datos</code>. Descargalos y subilos a tu dashboard. ¡Listo!</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loom al final -->
+    <div class="loom-section">
+      <h2>¿Preferís verlo en video?</h2>
+      <p class="muted">Acá te dejo todos los pasos explicados en un Loom.</p>
+      <div class="loom-frame">
+        <!--
+          Cuando tengas el link del Loom, reemplazá este bloque por el iframe:
+          <iframe src="https://www.loom.com/embed/TU_ID_DE_LOOM" allowfullscreen></iframe>
+        -->
+        <div class="loom-placeholder">
+          <div class="play">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p>Video en camino — lo subimos acá en un ratito.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>¿Trabaste en algún paso? Escribime y lo resolvemos al toque.</footer>
+  </div>
+</body>
+</html>
