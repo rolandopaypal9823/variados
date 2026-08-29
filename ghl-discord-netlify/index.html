@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>GHL → Discord · Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --canvas:#F8F0E1; --canvas-2:#F2E5CD; --card:#FFFFFF;
+  --ink:#38302A; --body:#6B6055; --mute:#9A8B7B;
+  --accent:#C96F45; --accent-deep:#AC5A31; --accent-soft:#F7E3D3;
+  --green:#6F9A5E; --green-soft:#EAF3E2;
+  --red:#B5483A; --red-soft:#F7E0DC;
+  --hairline:#EADFC9; --line:#DCCFB5;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--canvas);color:var(--body);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
+h1,h2{font-family:var(--serif);color:var(--ink);letter-spacing:-.015em;line-height:1.15;font-weight:600}
+.wrap{max-width:620px;margin:0 auto;padding:56px 20px 80px}
+header{text-align:center;margin-bottom:34px}
+.tag{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:inline-block;margin-bottom:12px}
+h1{font-size:1.9rem}
+header p{margin-top:10px;color:var(--body)}
+.card{background:var(--card);border:1px solid var(--hairline);border-radius:20px;padding:26px;margin-bottom:16px;box-shadow:0 10px 30px rgba(46,42,36,.06)}
+.card h2{font-size:1.15rem;margin-bottom:4px}
+.card .hint{font-size:.9rem;color:var(--mute);margin-bottom:16px}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:6px}
+input{
+  width:100%;font-family:var(--sans);font-size:.95rem;padding:12px 14px;
+  border:1px solid var(--line);border-radius:12px;background:var(--canvas-2);color:var(--ink);
+}
+input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.url{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
+  background:var(--canvas-2);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;word-break:break-all;color:var(--accent-deep);margin-top:14px;
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button{
+  font-family:var(--sans);font-weight:600;font-size:.94rem;padding:12px 20px;border-radius:999px;
+  border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+button:hover{transform:translateY(-1px)}
+button:disabled{opacity:.5;cursor:wait;transform:none}
+.primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(201,111,69,.26)}
+.ghost{background:transparent;color:var(--accent-deep);border-color:var(--line)}
+.result{margin-top:16px;padding:13px 16px;border-radius:12px;font-size:.9rem;display:none}
+.result.ok{display:block;background:var(--green-soft);color:#3F6533;border:1px solid #CBE0BC}
+.result.err{display:block;background:var(--red-soft);color:var(--red);border:1px solid #EDC7C0}
+ol{margin:14px 0 0 18px}
+li{margin-bottom:8px;font-size:.95rem}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--canvas-2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-size:.85em;color:var(--accent-deep)}
+footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="tag">FlowScale · Interno</span>
+    <h1>GHL → Discord</h1>
+    <p>Este sitio recibe las agendas de MKT Content y las publica en tu canal.</p>
+  </header>
+
+  <div class="card">
+    <h2>1. Tu clave</h2>
+    <p class="hint">La misma que cargaste en Netlify como <code>HOOK_SECRET</code>.</p>
+    <label for="key">HOOK_SECRET</label>
+    <input id="key" type="text" placeholder="pegá tu HOOK_SECRET acá" autocomplete="off" spellcheck="false" />
+    <div class="url" id="url">—</div>
+    <div class="row">
+      <button class="ghost" id="copy">Copiar URL para GHL</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Probá que funcione</h2>
+    <p class="hint">Primero el endpoint, después una agenda completa de prueba.</p>
+    <div class="row">
+      <button class="ghost" id="ping">Probar endpoint</button>
+      <button class="primary" id="send">Mandar agenda de prueba</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Pegala en GoHighLevel</h2>
+    <ol>
+      <li>Abrí tu workflow de MKT Content.</li>
+      <li>Agregá la acción <strong>Webhook</strong> (la común, no la Custom premium).</li>
+      <li>Método <code>POST</code> y pegá la URL de arriba.</li>
+      <li>Guardá y <strong>publicá</strong> el workflow.</li>
+    </ol>
+  </div>
+
+  <footer>Los detalles completos están en <code>LEEME.md</code>.</footer>
+
+</div>
+
+<script>
+const endpoint = location.origin + "/.netlify/functions/ghl-discord";
+const keyInput = document.getElementById("key");
+const urlBox = document.getElementById("url");
+const result = document.getElementById("result");
+
+const fullUrl = () => {
+  const key = keyInput.value.trim();
+  return key ? endpoint + "?key=" + encodeURIComponent(key) : endpoint;
+};
+
+const paint = () => { urlBox.textContent = fullUrl(); };
+keyInput.addEventListener("input", paint);
+paint();
+
+const show = (ok, message) => {
+  result.className = "result " + (ok ? "ok" : "err");
+  result.textContent = message;
+};
+
+const busy = (button, on) => {
+  button.disabled = on;
+  button.dataset.label ??= button.textContent;
+  button.textContent = on ? "Probando…" : button.dataset.label;
+};
+
+document.getElementById("copy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText(fullUrl());
+  show(true, "URL copiada. Pegala en la acción Webhook de GHL.");
+});
+
+document.getElementById("ping").addEventListener("click", async (event) => {
+  busy(event.target, true);
+  try {
+    const res = await fetch(fullUrl());
+    if (res.status === 401) show(false, "Clave incorrecta. Revisá el HOOK_SECRET que cargaste en Netlify.");
+    else if (res.ok) show(true, "El endpoint está vivo y esperando a GHL.");
+    else show(false, "El endpoint respondió " + res.status + ". Mirá Netlify → Logs → Functions.");
+  } catch {
+    show(false, "No pude alcanzar el endpoint. ¿Terminó de deployar el sitio?");
+  }
+  busy(event.target, false);
+});
+
+document.getElementById("send").addEventListener("click", async (event) => {
+  busy(event.target, true);
+  try {
+    const res = await fetch(fullUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        full_name: "Ana Prueba",
+        email: "ana@ejemplo.com",
+        phone: "+54 9 11 5555-5555",
+        habilidad: "Reparación de crédito",
+        "c.alumnos": "Entre 10 y 50",
+        precio: "Entre $1.000 y $3.000",
+        "P.programa": "Esto es una agenda de prueba: si la ves en Discord, ya está todo conectado.",
+      }),
+    });
+    if (res.status === 401) show(false, "Clave incorrecta. Revisá el HOOK_SECRET que cargaste en Netlify.");
+    else if (res.status === 500) show(false, "Falta la variable DISCORD_WEBHOOK_URL en Netlify (y un redeploy después de cargarla).");
+    else if (res.status === 502) show(false, "Discord rechazó el mensaje. Revisá que la URL del webhook siga viva.");
+    else if (res.ok) show(true, "Enviada. Andá a tu canal de Discord: la agenda de Ana Prueba tiene que estar ahí.");
+    else show(false, "Respondió " + res.status + ". Mirá Netlify → Logs → Functions.");
+  } catch {
+    show(false, "No pude alcanzar el endpoint. ¿Terminó de deployar el sitio?");
+  }
+  busy(event.target, false);
+});
+</script>
+</body>
+</html>

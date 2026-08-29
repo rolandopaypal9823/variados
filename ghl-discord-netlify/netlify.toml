@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# En un deploy manual (drag & drop) Netlify no corre el paso de build, asi que
+# la ruta declarada dentro de la funcion puede no registrarse. Este redirect si
+# se aplica siempre y deja andando la URL corta.
+[[redirects]]
+  from = "/hooks/ghl-discord"
+  to = "/.netlify/functions/ghl-discord"
+  status = 200
+  force = true

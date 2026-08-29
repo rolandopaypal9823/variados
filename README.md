@@ -27,6 +27,7 @@ Es HTML puro, sin build. Subí la carpeta a Netlify (o abrí `index.html` direct
 
 ## Integración GHL → Discord
 
-Este repo también incluye la función que avisa en Discord cuando alguien agenda
-desde el formulario de MKT Content (`netlify/functions/ghl-discord.mjs`). Los
-pasos para dejarla andando están en [`GHL-DISCORD.md`](GHL-DISCORD.md).
+La carpeta [`ghl-discord-netlify/`](ghl-discord-netlify/) es un sitio aparte,
+listo para arrastrar a Netlify, que avisa en Discord cada vez que alguien agenda
+desde el formulario de MKT Content. Los pasos están en
+[`ghl-discord-netlify/LEEME.md`](ghl-discord-netlify/LEEME.md).
