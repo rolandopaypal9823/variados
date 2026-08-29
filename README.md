@@ -22,3 +22,11 @@ Landing de una sola página (`index.html`) con los pasos para que el cliente pon
 ## Publicar
 
 Es HTML puro, sin build. Subí la carpeta a Netlify (o abrí `index.html` directo en el navegador para probar).
+
+---
+
+## Integración GHL → Discord
+
+Este repo también incluye la función que avisa en Discord cuando alguien agenda
+desde el formulario de MKT Content (`netlify/functions/ghl-discord.mjs`). Los
+pasos para dejarla andando están en [`GHL-DISCORD.md`](GHL-DISCORD.md).
