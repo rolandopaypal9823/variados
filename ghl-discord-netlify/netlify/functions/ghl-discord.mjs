@@ -44,8 +44,10 @@ const FIELDS = {
     "contact.programa",
     "que pasa hoy con tus alumnos cuando terminan tu programa",
   ],
-  email: ["email", "contact.email", "mail"],
-  telefono: ["phone", "contact.phone", "telefono"],
+  email: ["mail", "email", "contact.email"],
+  telefono: ["telefono", "phone", "contact.phone"],
+  // Opcional: solo aparece en Discord si lo mapeas en DATOS PERSONALIZADOS.
+  cuando: ["cuando", "fecha", "appointment_start_time", "start_time"],
 };
 
 /** Deja una clave comparable: sin acentos, sin signos, todo junto y en minuscula. */
@@ -144,7 +146,10 @@ async function sendToDiscord(url, body) {
 export default async (req) => {
   const secret = process.env.HOOK_SECRET;
   if (secret) {
-    if (new URL(req.url).searchParams.get("key") !== secret) {
+    // GHL lo puede mandar en la URL (?key=) o como encabezado x-hook-secret.
+    const sent =
+      new URL(req.url).searchParams.get("key") || req.headers.get("x-hook-secret");
+    if (sent !== secret) {
       return new Response("unauthorized", { status: 401 });
     }
   } else {
@@ -171,28 +176,34 @@ export default async (req) => {
 
   const index = indexPayload(payload);
   const nombre =
-    pick(index, ["full_name", "fullname", "contact_name"]) ||
+    pick(index, ["nombre", "full_name", "fullname", "contact_name"]) ||
     [pick(index, ["first_name"]), pick(index, ["last_name"])]
       .filter(Boolean)
       .join(" ");
+
+  const cuando = pick(index, FIELDS.cuando);
+  const preguntas = [
+    field("1. ¿Qué habilidad enseña?", pick(index, FIELDS.habilidad)),
+    field("2. ¿Cuántos alumnos activos?", pick(index, FIELDS.alumnos)),
+    field("3. ¿A cuánto vende su programa?", pick(index, FIELDS.precio)),
+    field("4. ¿Qué pasa con sus alumnos cuando terminan?", pick(index, FIELDS.programa)),
+  ];
 
   const body = {
     ...(process.env.DISCORD_MENTION ? { content: process.env.DISCORD_MENTION } : {}),
     embeds: [
       {
-        title: "Nueva agenda de MKT Content \u{1F389}",
+        title: "\u{1F4C5} NUEVA AGENDA",
         color: ACCENT,
         fields: [
-          field("¿Qué habilidad enseña?", pick(index, FIELDS.habilidad)),
-          field("¿Cuántos alumnos activos?", pick(index, FIELDS.alumnos), true),
-          field("¿A cuánto vende su programa?", pick(index, FIELDS.precio), true),
-          field("¿Qué pasa con sus alumnos cuando terminan?", pick(index, FIELDS.programa)),
           field("Nombre", nombre, true),
           field("Mail", pick(index, FIELDS.email), true),
           field("Teléfono", pick(index, FIELDS.telefono), true),
+          ...(cuando ? [field("Cuándo", cuando)] : []),
+          ...preguntas,
         ],
         timestamp: new Date().toISOString(),
-        footer: { text: "GoHighLevel" },
+        footer: { text: "GoHighLevel · Sesión de Claridad" },
       },
     ],
   };

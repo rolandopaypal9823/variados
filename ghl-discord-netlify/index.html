@@ -55,6 +55,8 @@ button:disabled{opacity:.5;cursor:wait;transform:none}
 ol{margin:14px 0 0 18px}
 li{margin-bottom:8px;font-size:.95rem}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--canvas-2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-size:.85em;color:var(--accent-deep)}
+.keys{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 4px}
+.keys code{font-size:.82rem;padding:4px 10px}
 footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
 </style>
 </head>
@@ -91,10 +93,15 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
   <div class="card">
     <h2>3. Pegala en GoHighLevel</h2>
     <ol>
-      <li>Abrí tu workflow de MKT Content.</li>
-      <li>Agregá la acción <strong>Webhook</strong> (la común, no la Custom premium).</li>
-      <li>Método <code>POST</code> y pegá la URL de arriba.</li>
-      <li>Guardá y <strong>publicá</strong> el workflow.</li>
+      <li>En la acción <strong>Webhook</strong>: método <code>POST</code> y la URL de arriba.</li>
+      <li>En <strong>Datos personalizados</strong>, cargá estas siete claves con el
+        selector de campos (el ícono de etiqueta):</li>
+    </ol>
+    <div class="keys">
+      <code>nombre</code><code>mail</code><code>telefono</code><code>habilidad</code><code>alumnos</code><code>precio</code><code>programa</code>
+    </div>
+    <ol start="3">
+      <li>Guardá la acción y <strong>publicá</strong> el workflow (de Borrador a Publicar).</li>
     </ol>
   </div>
 
@@ -153,13 +160,13 @@ document.getElementById("send").addEventListener("click", async (event) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        full_name: "Ana Prueba",
-        email: "ana@ejemplo.com",
-        phone: "+54 9 11 5555-5555",
+        nombre: "Ana Prueba",
+        mail: "ana@ejemplo.com",
+        telefono: "+54 9 11 5555-5555",
         habilidad: "Reparación de crédito",
-        "c.alumnos": "Entre 10 y 50",
+        alumnos: "Entre 10 y 50",
         precio: "Entre $1.000 y $3.000",
-        "P.programa": "Esto es una agenda de prueba: si la ves en Discord, ya está todo conectado.",
+        programa: "Esto es una agenda de prueba: si la ves en Discord, ya está todo conectado.",
       }),
     });
     if (res.status === 401) show(false, "Clave incorrecta. Revisá el HOOK_SECRET que cargaste en Netlify.");

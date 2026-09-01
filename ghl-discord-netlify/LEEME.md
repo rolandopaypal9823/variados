@@ -1,7 +1,7 @@
 # GHL → Discord
 
-Avisa en un canal de Discord cada vez que alguien agenda desde el formulario de
-**MKT Content**. Sin n8n y sin acciones premium de GoHighLevel.
+Avisa en un canal de Discord cada vez que alguien reserva una **Sesión de
+Claridad**. Sin n8n y sin acciones premium de GoHighLevel.
 
 ```
 GHL (workflow → acción Webhook, la gratis)
@@ -13,132 +13,140 @@ Netlify Function  /.netlify/functions/ghl-discord
 Tu canal de Discord
 ```
 
+El mensaje que llega:
+
+```
+📅 NUEVA AGENDA
+Nombre · Mail · Teléfono
+1. ¿Qué habilidad enseña?
+2. ¿Cuántos alumnos activos?
+3. ¿A cuánto vende su programa?
+4. ¿Qué pasa con sus alumnos cuando terminan?
+```
+
 ---
 
 ## Parte 1 · Discord
 
-1. En el canal donde querés los avisos: **⚙️ Editar canal → Integraciones →
-   Webhooks → Nuevo webhook**.
+1. En el canal: **⚙️ Editar canal → Integraciones → Webhooks → Nuevo webhook**.
 2. Ponele nombre (ej. "Agendas") y avatar.
-3. **Copiar URL del webhook.** Guardala a mano, la vas a pegar en el paso 2.
+3. **Copiar URL del webhook.**
 
-Esa URL es la credencial del canal: el que la tiene puede escribir ahí. Por eso
-no va a GHL ni a ningún archivo, solo a las variables de entorno de Netlify.
+Esa URL es la credencial del canal: el que la tiene escribe ahí. No va a GHL ni
+a ningún archivo, solo a las variables de entorno de Netlify.
 
 ## Parte 2 · Netlify
 
-1. Entrá a Netlify y arrastrá **esta carpeta** a la zona de deploy
-   (o a [app.netlify.com/drop](https://app.netlify.com/drop) si es un sitio nuevo).
-2. Cuando termine, andá a **Site configuration → Environment variables** y
-   agregá:
+1. Arrastrá **esta carpeta** a [app.netlify.com/drop](https://app.netlify.com/drop).
+   Te crea el sitio al instante con un nombre random.
+2. **Site configuration → Change site name** → poné `flowscale-hooks`. Así la
+   URL es la de más abajo y ya podés pegarla en GHL.
+3. **Site configuration → Environment variables → Add a variable:**
 
    | Variable | ¿Obligatoria? | Valor |
    | --- | --- | --- |
    | `DISCORD_WEBHOOK_URL` | sí | La URL de la Parte 1 |
-   | `HOOK_SECRET` | recomendada | Un token cualquiera, ej. `43c278c364fd759c377a2f213b715c54` |
+   | `HOOK_SECRET` | recomendada | `43c278c364fd759c377a2f213b715c54` |
    | `DISCORD_MENTION` | no | `@here` si querés que suene la notificación |
 
-3. **Volvé a arrastrar la carpeta** (o *Deploys → Trigger deploy*). Las
-   variables recién se aplican en el deploy siguiente.
+4. **Volvé a arrastrar la carpeta.** Las variables recién se aplican en el
+   deploy siguiente.
 
-Sin `HOOK_SECRET` el endpoint anda igual, pero cualquiera que descubra la URL
-puede escribir en tu canal. Ponelo.
+Tu URL queda:
+
+```
+https://flowscale-hooks.netlify.app/.netlify/functions/ghl-discord?key=43c278c364fd759c377a2f213b715c54
+```
+
+(Si el nombre `flowscale-hooks` está ocupado, elegí otro y cambiá esa parte.)
 
 ## Parte 3 · Probar antes de tocar GHL
 
-Abrí el sitio que te dio Netlify. La página de inicio es un panel de control:
-pegás tu `HOOK_SECRET`, apretás **Probar endpoint** y después **Mandar agenda de
-prueba**. Si la agenda de "Ana Prueba" aparece en Discord, ya está: lo único que
-falta es que GHL le pegue a esa misma URL.
+Abrí el sitio: la home es un panel de control. Pegás el `HOOK_SECRET`, apretás
+**Probar endpoint** y después **Mandar agenda de prueba**. Si "Ana Prueba"
+aparece en Discord, el puente está andando y solo falta conectar GHL.
 
-El panel también te arma y copia la URL exacta para GHL. Tiene esta forma:
+## Parte 4 · GoHighLevel
 
-```
-https://TU-SITIO.netlify.app/.netlify/functions/ghl-discord?key=TU_HOOK_SECRET
-```
+### El trigger
 
-## Parte 4 · GoHighLevel, paso a paso
+**Cita Reservada Por El Cliente**, filtrando por el calendario *Sesión de
+Claridad*. (Si en vez de eso usás un formulario, el trigger es *Form
+Submitted* — el resto es igual.)
 
-### A. Los campos personalizados
+### La acción Webhook
 
-**Settings → Custom Fields** (Configuración → Campos personalizados). Cada
-pregunta del formulario tiene que guardar en su campo, y cada campo tiene una
-*Unique Key* / *Query Key*:
+En el panel de la acción:
 
-| Pregunta | Query key |
+- **Método:** `POST`
+- **URL:** la de la Parte 2, con el `?key=` incluido
+- **Encabezados:** nada
+- **Datos personalizados:** acá está todo el mapeo ↓
+
+### El mapeo: Datos personalizados
+
+Esta es la parte importante. En vez de dejar que GHL mande los campos con el
+nombre que se le ocurra, vos le decís con qué clave mandar cada dato. Tocá
+**⊕ Añadir artículo** siete veces y cargá:
+
+| Clave (escribila tal cual) | Valor |
 | --- | --- |
-| ¿Qué habilidad enseñas en tu curso o mentoría? | `habilidad` |
-| ¿Cuántos alumnos activos tienes hoy? | `c.alumnos` |
-| ¿A cuánto vendes tu programa hoy? | `precio` |
-| ¿Qué pasa hoy con tus alumnos cuando terminan tu programa…? | `P.programa` |
+| `nombre` | Nombre completo del contacto |
+| `mail` | Email del contacto |
+| `telefono` | Teléfono del contacto |
+| `habilidad` | Campo personalizado *Habilidad* |
+| `alumnos` | Campo personalizado *Alumnos* |
+| `precio` | Campo personalizado *Precio* |
+| `programa` | Campo personalizado *Programa* |
 
-Si todavía no creaste el de la pregunta 3: **+ Add Field → Dropdown (Single
-Options)**, nombre "Precio", cargá las tres opciones y guardá con la key
-`precio`. Nombre, mail y teléfono ya son campos estándar del contacto, no hay
-que crear nada.
+**La clave la escribís a mano, el valor lo insertás con el ícono de etiqueta**
+(el selector de campos). Nunca tipees el merge tag: elegilo del selector y GHL
+pone la referencia correcta sola.
 
-### B. El formulario
+Opcional: una octava fila con clave `cuando` y el valor *Appointment Start Time*
+para que el mensaje muestre la fecha de la cita. Si no la cargás, ese renglón
+simplemente no aparece.
 
-**Sites → Forms → Builder**, abrí el de MKT Content y confirmá que cada
-pregunta esté apuntando a su campo personalizado (no a un campo suelto del
-formulario). Si no, la respuesta no viaja en el webhook.
+### Publicar
 
-### C. El workflow
+**Guardar acción**, después **Guardar** el workflow, y arriba a la derecha pasá
+el switch de **Borrador** a **Publicar**. En borrador no se ejecuta nunca — es
+el olvido más común.
 
-1. **Automation → Workflows** y abrí el de MKT Content (o *Create Workflow →
-   Start from Scratch*).
-2. **Trigger:**
-   - Si la persona completa un formulario: **Form Submitted**, y en el filtro
-     elegí el formulario de MKT Content.
-   - Si agenda en un calendario: **Customer Booked Appointment**, filtrando por
-     ese calendario.
-3. Tocá **+** y buscá `Webhook`. Elegí **Webhook** — la común. Si ves *Custom
-   Webhook* con el ícono de premium, **esa no es**: cobra por ejecución y no
-   hace falta.
-4. **Method:** `POST`.
-5. **URL:** pegá la que te copió el panel, con el `?key=` incluido.
-6. No toques nada más (ni headers ni body): la acción manda sola todos los datos
-   del contacto.
-7. **Save Action.**
-8. Arriba a la derecha, pasá el workflow de **Draft** a **Publish**. Si queda en
-   borrador no se ejecuta nunca — es el olvido más común.
+### Probar de verdad
 
-### D. La prueba real
+Reservá una cita vos mismo en el calendario y mirá Discord.
 
-Completá el formulario vos mismo, con datos de verdad, y mirá Discord.
+- **¿No aparece nada?** Workflow → **Registros de ejecución**. Si tu prueba no
+  figura, el problema es el trigger o que quedó en borrador.
+- **¿Corrió pero no llegó?** Netlify → **Logs → Functions → ghl-discord**.
 
-Si no llega nada:
+## Si algún campo llega vacío ("—" en Discord)
 
-- **¿Corrió el workflow?** Workflow → pestaña **Execution Logs**. Si no aparece
-  tu prueba, el problema es el trigger o que quedó en Draft.
-- **¿Corrió pero no llegó?** Netlify → **Logs → Functions → ghl-discord**. Ahí
-  vas a ver la llamada y el error.
+1. **Revisá la fila en Datos personalizados**: que la clave esté escrita igual
+   que en la tabla y que el valor tenga el campo insertado con el selector.
+2. **Timing:** a veces GHL dispara el webhook antes de guardar las respuestas en
+   el contacto. Meté una acción **Esperar → 1 minuto** antes del Webhook.
+3. **Último recurso:** en Netlify → Logs → Functions queda el payload completo
+   de cada llamada. Ahí ves con qué nombre viajó realmente el campo; lo agregás
+   a la lista `FIELDS`, arriba de todo en `netlify/functions/ghl-discord.mjs`, y
+   volvés a arrastrar la carpeta.
 
-**Si llegan campos vacíos ("—" en Discord):** a veces GHL dispara el webhook
-antes de terminar de guardar las respuestas en el contacto. Meté una acción
-**Wait → 1 minuto** justo antes del Webhook y listo.
-
-## Si un campo sigue llegando vacío
-
-La función busca cada respuesta ignorando mayúsculas, acentos, puntos y prefijos
-tipo `contact.`, y contempla que GHL mande la pregunta entera como clave. Si aun
-así falla: en **Netlify → Logs → Functions → ghl-discord** queda registrado el
-payload completo de cada llamada. Buscá con qué nombre exacto viajó el campo,
-copialo y agregalo a la lista `FIELDS` que está arriba de todo en
-`netlify/functions/ghl-discord.mjs`. Es el único lugar del archivo que hay que
-tocar. Después volvés a arrastrar la carpeta a Netlify.
+La función igual es tolerante: acepta la clave con mayúsculas, con acentos, con
+prefijos tipo `contact.`, dentro de `customData`, o la pregunta entera como
+clave. Los Datos personalizados son para no depender de eso.
 
 ## Costos y límites
 
 - **GHL:** $0. La acción Webhook común no es premium.
-- **Netlify:** plan gratis, 125.000 invocaciones de función por mes.
-- **Discord:** ~30 mensajes por minuto por webhook y 5 cada 5 segundos por
-  canal. Si Discord responde 429, la función espera lo que pide y reintenta.
+- **Netlify:** plan gratis, 125.000 invocaciones por mes.
+- **Discord:** ~30 mensajes por minuto por webhook. Si contesta 429, la función
+  espera lo que pide y reintenta.
 
 ## Qué hay adentro
 
 | Archivo | Para qué |
 | --- | --- |
-| `netlify/functions/ghl-discord.mjs` | La función. El mapeo de campos está arriba de todo. |
+| `netlify/functions/ghl-discord.mjs` | La función. El mapeo está arriba de todo, en `FIELDS`. |
 | `netlify.toml` | Le dice a Netlify dónde está la función. |
-| `index.html` | El panel de control para probar y copiar la URL. |
+| `index.html` | El panel para probar y copiar la URL. |
