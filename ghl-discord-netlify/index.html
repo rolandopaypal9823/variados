@@ -70,13 +70,11 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
   </header>
 
   <div class="card">
-    <h2>1. Tu clave</h2>
-    <p class="hint">La misma que cargaste en Netlify como <code>HOOK_SECRET</code>.</p>
-    <label for="key">HOOK_SECRET</label>
-    <input id="key" type="text" placeholder="pegá tu HOOK_SECRET acá" autocomplete="off" spellcheck="false" />
+    <h2>1. Tu URL para GHL</h2>
+    <p class="hint">Es esta misma, pegala tal cual en la acción Webhook.</p>
     <div class="url" id="url">—</div>
     <div class="row">
-      <button class="ghost" id="copy">Copiar URL para GHL</button>
+      <button class="ghost" id="copy">Copiar URL</button>
     </div>
   </div>
 
@@ -91,7 +89,7 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
   </div>
 
   <div class="card">
-    <h2>3. Pegala en GoHighLevel</h2>
+    <h2>3. Configurá GoHighLevel</h2>
     <ol>
       <li>En la acción <strong>Webhook</strong>: método <code>POST</code> y la URL de arriba.</li>
       <li>En <strong>Datos personalizados</strong>, cargá estas siete claves con el
@@ -111,18 +109,12 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
 
 <script>
 const endpoint = location.origin + "/.netlify/functions/ghl-discord";
-const keyInput = document.getElementById("key");
 const urlBox = document.getElementById("url");
 const result = document.getElementById("result");
 
-const fullUrl = () => {
-  const key = keyInput.value.trim();
-  return key ? endpoint + "?key=" + encodeURIComponent(key) : endpoint;
-};
+const fullUrl = () => endpoint;
 
-const paint = () => { urlBox.textContent = fullUrl(); };
-keyInput.addEventListener("input", paint);
-paint();
+urlBox.textContent = fullUrl();
 
 const show = (ok, message) => {
   result.className = "result " + (ok ? "ok" : "err");
@@ -144,8 +136,7 @@ document.getElementById("ping").addEventListener("click", async (event) => {
   busy(event.target, true);
   try {
     const res = await fetch(fullUrl());
-    if (res.status === 401) show(false, "Clave incorrecta. Revisá el HOOK_SECRET que cargaste en Netlify.");
-    else if (res.ok) show(true, "El endpoint está vivo y esperando a GHL.");
+    if (res.ok) show(true, "El endpoint está vivo y esperando a GHL.");
     else show(false, "El endpoint respondió " + res.status + ". Mirá Netlify → Logs → Functions.");
   } catch {
     show(false, "No pude alcanzar el endpoint. ¿Terminó de deployar el sitio?");
@@ -169,8 +160,7 @@ document.getElementById("send").addEventListener("click", async (event) => {
         programa: "Esto es una agenda de prueba: si la ves en Discord, ya está todo conectado.",
       }),
     });
-    if (res.status === 401) show(false, "Clave incorrecta. Revisá el HOOK_SECRET que cargaste en Netlify.");
-    else if (res.status === 500) show(false, "Falta la variable DISCORD_WEBHOOK_URL en Netlify (y un redeploy después de cargarla).");
+    if (res.status === 500) show(false, "Falta la variable DISCORD_WEBHOOK_URL en Netlify (y un redeploy después de cargarla).");
     else if (res.status === 502) show(false, "Discord rechazó el mensaje. Revisá que la URL del webhook siga viva.");
     else if (res.ok) show(true, "Enviada. Andá a tu canal de Discord: la agenda de Ana Prueba tiene que estar ahí.");
     else show(false, "Respondió " + res.status + ". Mirá Netlify → Logs → Functions.");

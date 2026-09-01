@@ -46,7 +46,6 @@ a ningún archivo, solo a las variables de entorno de Netlify.
    | Variable | ¿Obligatoria? | Valor |
    | --- | --- | --- |
    | `DISCORD_WEBHOOK_URL` | sí | La URL de la Parte 1 |
-   | `HOOK_SECRET` | recomendada | `43c278c364fd759c377a2f213b715c54` |
    | `DISCORD_MENTION` | no | `@here` si querés que suene la notificación |
 
 4. **Volvé a arrastrar la carpeta.** Las variables recién se aplican en el
@@ -55,15 +54,20 @@ a ningún archivo, solo a las variables de entorno de Netlify.
 Tu URL queda:
 
 ```
-https://flowscale-hooks.netlify.app/.netlify/functions/ghl-discord?key=43c278c364fd759c377a2f213b715c54
+https://flowscale-hooks.netlify.app/.netlify/functions/ghl-discord
 ```
+
+Esta URL no lleva contraseña: quien la tenga puede mandarle datos al endpoint.
+Es una URL larga y al azar que nadie va a adivinar, así que para este uso
+alcanza — no hay nada sensible del lado de GHL, y del lado de Discord la
+credencial real (la URL del webhook) sigue protegida como variable de entorno.
 
 (Si el nombre `flowscale-hooks` está ocupado, elegí otro y cambiá esa parte.)
 
 ## Parte 3 · Probar antes de tocar GHL
 
-Abrí el sitio: la home es un panel de control. Pegás el `HOOK_SECRET`, apretás
-**Probar endpoint** y después **Mandar agenda de prueba**. Si "Ana Prueba"
+Abrí el sitio: la home es un panel de control con la URL ya lista para copiar.
+Apretá **Probar endpoint** y después **Mandar agenda de prueba**. Si "Ana Prueba"
 aparece en Discord, el puente está andando y solo falta conectar GHL.
 
 ## Parte 4 · GoHighLevel

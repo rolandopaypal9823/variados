@@ -6,7 +6,6 @@
  *
  * Variables de entorno (Netlify -> Site configuration -> Environment variables):
  *   DISCORD_WEBHOOK_URL  obligatoria   URL del webhook del canal de Discord
- *   HOOK_SECRET          recomendada   token que GHL manda en la URL como ?key=...
  *   DISCORD_MENTION      opcional      ej. "@here", para que suene la notificacion
  */
 
@@ -144,18 +143,6 @@ async function sendToDiscord(url, body) {
 }
 
 export default async (req) => {
-  const secret = process.env.HOOK_SECRET;
-  if (secret) {
-    // GHL lo puede mandar en la URL (?key=) o como encabezado x-hook-secret.
-    const sent =
-      new URL(req.url).searchParams.get("key") || req.headers.get("x-hook-secret");
-    if (sent !== secret) {
-      return new Response("unauthorized", { status: 401 });
-    }
-  } else {
-    console.warn("HOOK_SECRET sin definir: cualquiera que sepa la URL puede escribir en el canal.");
-  }
-
   if (req.method === "GET") {
     return new Response("ok, el endpoint esta vivo y esperando el webhook de GHL");
   }
