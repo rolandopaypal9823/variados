@@ -7,7 +7,7 @@ Claridad**. Sin n8n y sin acciones premium de GoHighLevel.
 GHL (workflow → acción Webhook, la gratis)
         │  POST con los datos del contacto
         ▼
-Netlify Function  /.netlify/functions/ghl-discord
+Netlify Function  /hooks/ghl-discord
         │  arma el mensaje; la URL de Discord vive acá, no en GHL
         ▼
 Tu canal de Discord
@@ -51,11 +51,19 @@ a ningún archivo, solo a las variables de entorno de Netlify.
 4. **Volvé a arrastrar la carpeta.** Las variables recién se aplican en el
    deploy siguiente.
 
+Para actualizar el sitio más adelante: entrá al proyecto en Netlify, pestaña
+**Deploys**, y arrastrá la carpeta de nuevo ahí. Se actualiza en el lugar y la
+URL no cambia.
+
 Tu URL queda:
 
 ```
-https://flowscale-hooks.netlify.app/.netlify/functions/ghl-discord
+https://flowscale-hooks.netlify.app/hooks/ghl-discord
 ```
+
+Esa ruta (`/hooks/ghl-discord`) es la que declara la función y la que Netlify
+muestra como *Endpoint* en **Logs & metrics → Functions**. La ruta genérica
+`/.netlify/functions/...` no responde cuando la función declara su propio path.
 
 Esta URL no lleva contraseña: quien la tenga puede mandarle datos al endpoint.
 Es una URL larga y al azar que nadie va a adivinar, así que para este uso
