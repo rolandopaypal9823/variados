@@ -13,15 +13,19 @@ Netlify Function  /hooks/ghl-discord
 Tu canal de Discord
 ```
 
-El mensaje que llega:
+Manda dos avisos distintos según el caso:
 
 ```
-📅 NUEVA AGENDA
+📅 NUEVA AGENDA                    (naranja)
 Nombre · Mail · Teléfono
-1. ¿Qué habilidad enseña?
-2. ¿Cuántos alumnos activos?
-3. ¿A cuánto vende su programa?
-4. ¿Qué pasa con sus alumnos cuando terminan?
+Cuándo es la llamada
+1..4 las respuestas del survey
+📲 Escribirle para confirmar  ← link de WhatsApp con el mensaje ya escrito
+
+📝 COMPLETÓ EL SURVEY · SIN AGENDAR   (ámbar)
+Nombre · Mail · Teléfono
+1..4 las respuestas del survey
+📲 Escribirle por WhatsApp    ← otro mensaje, el de seguimiento
 ```
 
 ---
@@ -37,101 +41,152 @@ a ningún archivo, solo a las variables de entorno de Netlify.
 
 ## Parte 2 · Netlify
 
-1. Arrastrá **esta carpeta** a [app.netlify.com/drop](https://app.netlify.com/drop).
-   Te crea el sitio al instante con un nombre random.
-2. **Site configuration → Change site name** → poné `flowscale-hooks`. Así la
-   URL es la de más abajo y ya podés pegarla en GHL.
-3. **Site configuration → Environment variables → Add a variable:**
+**El drag & drop del navegador no sirve acá.** Netlify sube los archivos pero no
+enruta las funciones: te queda el sitio andando y el endpoint tirando 404. Las
+funciones se deployan por Git, por CLI o por API — no por el dropzone.
 
-   | Variable | ¿Obligatoria? | Valor |
-   | --- | --- | --- |
-   | `DISCORD_WEBHOOK_URL` | sí | La URL de la Parte 1 |
-   | `DISCORD_MENTION` | no | `@here` si querés que suene la notificación |
+### Opción A · Conectar Git (sin terminal)
 
-4. **Volvé a arrastrar la carpeta.** Las variables recién se aplican en el
-   deploy siguiente.
+En el proyecto de Netlify: **Project configuration → Build & deploy →
+Continuous deployment → Link repository**. Conserva el nombre del sitio, las
+variables de entorno y la URL.
 
-Para actualizar el sitio más adelante: entrá al proyecto en Netlify, pestaña
-**Deploys**, y arrastrá la carpeta de nuevo ahí. Se actualiza en el lugar y la
-URL no cambia.
+| Campo | Valor |
+| --- | --- |
+| Repository | `rolandopaypal9823/variados` |
+| Branch to deploy | `claude/ghl-discord-netlify-7lwt7s` |
+| Base directory | `ghl-discord-netlify` |
+| Build command | *(vacío)* |
+| Publish directory | `ghl-discord-netlify` |
 
-Tu URL queda:
+Ojo con la branch: no es `main`.
+
+### Opción B · Netlify CLI
+
+Parado dentro de la carpeta `ghl-discord-netlify`:
+
+```bash
+npm install -g netlify-cli
+netlify login
+netlify link          # elegís el sitio flowscale-hooks
+netlify deploy --prod
+```
+
+El `netlify.toml` ya dice qué publicar y dónde están las funciones.
+
+### Las variables de entorno
+
+**Site configuration → Environment variables → Add a variable:**
+
+| Variable | ¿Obligatoria? | Valor |
+| --- | --- | --- |
+| `DISCORD_WEBHOOK_URL` | sí | La URL de la Parte 1 |
+| `DISCORD_MENTION` | no | `@here` si querés que suene la notificación |
+| `TIMEZONE` | no | Default `America/Argentina/Buenos_Aires` |
+| `WHATSAPP_AGENDA` | no | Para cambiar el mensaje de confirmación |
+| `WHATSAPP_SIN_AGENDA` | no | Para cambiar el mensaje de seguimiento |
+
+Las variables se aplican recién en el deploy siguiente: después de cargarlas,
+**Deploys → Trigger deploy**.
+
+### Tu URL
 
 ```
 https://flowscale-hooks.netlify.app/hooks/ghl-discord
 ```
 
-Esa ruta (`/hooks/ghl-discord`) es la que declara la función y la que Netlify
-muestra como *Endpoint* en **Logs & metrics → Functions**. La ruta genérica
-`/.netlify/functions/...` no responde cuando la función declara su propio path.
+Esa ruta es la que declara la función y la que Netlify muestra como *Endpoint*
+en **Logs & metrics → Functions**. La ruta genérica `/.netlify/functions/...`
+no responde cuando la función declara su propio path.
 
-Esta URL no lleva contraseña: quien la tenga puede mandarle datos al endpoint.
-Es una URL larga y al azar que nadie va a adivinar, así que para este uso
-alcanza — no hay nada sensible del lado de GHL, y del lado de Discord la
-credencial real (la URL del webhook) sigue protegida como variable de entorno.
-
-(Si el nombre `flowscale-hooks` está ocupado, elegí otro y cambiá esa parte.)
+No lleva contraseña: quien la tenga puede mandarle datos al endpoint. Es una URL
+larga y al azar que nadie va a adivinar, así que para este uso alcanza — del
+lado de Discord la credencial real sigue protegida como variable de entorno.
 
 ## Parte 3 · Probar antes de tocar GHL
 
 Abrí el sitio: la home es un panel de control con la URL ya lista para copiar.
-Apretá **Probar endpoint** y después **Mandar agenda de prueba**. Si "Ana Prueba"
-aparece en Discord, el puente está andando y solo falta conectar GHL.
+Apretá **Probar endpoint**, y después **Probar agenda** y **Probar survey sin
+agenda**. Si los dos mensajes de "Ana Prueba" aparecen en Discord, el puente
+está andando y solo falta conectar GHL.
 
 ## Parte 4 · GoHighLevel
 
-### El trigger
+Son **dos workflows**, cada uno apuntando a la misma URL pero con un `?tipo=`
+distinto al final. Eso es lo único que le dice a la función qué mensaje armar.
 
-**Cita Reservada Por El Cliente**, filtrando por el calendario *Sesión de
-Claridad*. (Si en vez de eso usás un formulario, el trigger es *Form
-Submitted* — el resto es igual.)
+| Workflow | URL |
+| --- | --- |
+| Agendó | `https://flowscale-hooks.netlify.app/hooks/ghl-discord?tipo=agenda` |
+| Completó el survey y no agendó | `https://flowscale-hooks.netlify.app/hooks/ghl-discord?tipo=noagenda` |
 
-### La acción Webhook
+### Workflow 1 · "Agenda → Discord"
 
-En el panel de la acción:
+- **Trigger:** Cita Reservada Por El Cliente, filtrando por el calendario
+  *Sesión de Claridad*.
+- **Acción:** Webhook, `POST`, la URL con `?tipo=agenda`.
 
-- **Método:** `POST`
-- **URL:** la de la Parte 2, con el `?key=` incluido
-- **Encabezados:** nada
-- **Datos personalizados:** acá está todo el mapeo ↓
+Dispara siempre que reservan, agenden a los dos minutos o a los tres días.
 
-### El mapeo: Datos personalizados
+### Workflow 2 · "Survey sin agenda → Discord"
 
-Esta es la parte importante. En vez de dejar que GHL mande los campos con el
-nombre que se le ocurra, vos le decís con qué clave mandar cada dato. Tocá
-**⊕ Añadir artículo** siete veces y cargá:
+- **Trigger:** Survey Submitted (el survey de MKT Content).
+- **Acción 1 — Esperar:** 30 minutos. Le das tiempo a que agende después de
+  completar el survey.
+- **Acción 2 — Condición If/Else:** ¿el contacto tiene una cita en el
+  calendario *Sesión de Claridad*?
+  - **Sí →** cortá acá. El Workflow 1 ya avisó, no hace falta duplicar.
+  - **No →** Webhook, `POST`, la URL con `?tipo=noagenda`.
 
-| Clave (escribila tal cual) | Valor |
+Así nadie se pierde: el que agenda entra por el 1, el que no, cae por el 2
+media hora después.
+
+### Los Datos personalizados (los mismos en los dos workflows)
+
+Tocá **⊕ Añadir artículo** y cargá estas filas. La clave la escribís a mano; el
+valor lo insertás con el **ícono de etiqueta** (el selector de campos), nunca
+tipeando el merge tag:
+
+| Clave | Valor |
 | --- | --- |
 | `nombre` | Nombre completo del contacto |
 | `mail` | Email del contacto |
 | `telefono` | Teléfono del contacto |
+| `cuando` | *Appointment Start Time* — **solo en el Workflow 1** |
 | `habilidad` | Campo personalizado *Habilidad* |
 | `alumnos` | Campo personalizado *Alumnos* |
 | `precio` | Campo personalizado *Precio* |
 | `programa` | Campo personalizado *Programa* |
 
-**La clave la escribís a mano, el valor lo insertás con el ícono de etiqueta**
-(el selector de campos). Nunca tipees el merge tag: elegilo del selector y GHL
-pone la referencia correcta sola.
+**Encabezados:** nada.
 
-Opcional: una octava fila con clave `cuando` y el valor *Appointment Start Time*
-para que el mensaje muestre la fecha de la cita. Si no la cargás, ese renglón
-simplemente no aparece.
+### El teléfono, para que el link de WhatsApp funcione
+
+El mensaje incluye un botón que abre WhatsApp con el texto ya escrito. Para que
+funcione, el teléfono tiene que tener **código de país**: `+54 9 11 5555-5555`
+sirve, `11 5555-5555` no. La función limpia espacios, guiones y el `+` sola,
+pero no puede adivinar el país. Si el número llega corto, el botón simplemente
+no aparece y el resto del mensaje llega igual.
 
 ### Publicar
 
-**Guardar acción**, después **Guardar** el workflow, y arriba a la derecha pasá
-el switch de **Borrador** a **Publicar**. En borrador no se ejecuta nunca — es
-el olvido más común.
+**Guardar acción → Guardar el workflow → pasar el switch de Borrador a
+Publicar.** En borrador no se ejecuta nunca.
 
-### Probar de verdad
+### Los mensajes de WhatsApp
 
-Reservá una cita vos mismo en el calendario y mirá Discord.
+Van escritos en la función, pero podés cambiarlos sin tocar código con dos
+variables de entorno en Netlify. Admiten `{nombre}` y `{cuando}`:
 
-- **¿No aparece nada?** Workflow → **Registros de ejecución**. Si tu prueba no
-  figura, el problema es el trigger o que quedó en borrador.
-- **¿Corrió pero no llegó?** Netlify → **Logs → Functions → ghl-discord**.
+| Variable | Qué mensaje cambia |
+| --- | --- |
+| `WHATSAPP_AGENDA` | El de confirmar la llamada (Samy) |
+| `WHATSAPP_SIN_AGENDA` | El del survey sin agendar (Rolando) |
+
+También hay `TIMEZONE` (default `America/Argentina/Buenos_Aires`) para la zona
+horaria con la que se muestra la fecha de la cita.
+
+Después de cambiar cualquier variable, acordate del redeploy.
 
 ## Si algún campo llega vacío ("—" en Discord)
 
@@ -142,7 +197,7 @@ Reservá una cita vos mismo en el calendario y mirá Discord.
 3. **Último recurso:** en Netlify → Logs → Functions queda el payload completo
    de cada llamada. Ahí ves con qué nombre viajó realmente el campo; lo agregás
    a la lista `FIELDS`, arriba de todo en `netlify/functions/ghl-discord.mjs`, y
-   volvés a arrastrar la carpeta.
+   redeployás (push a la branch, o `netlify deploy --prod`).
 
 La función igual es tolerante: acepta la clave con mayúsculas, con acentos, con
 prefijos tipo `contact.`, dentro de `customData`, o la pregunta entera como

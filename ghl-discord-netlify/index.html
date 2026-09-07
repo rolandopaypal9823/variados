@@ -80,10 +80,11 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
 
   <div class="card">
     <h2>2. Probá que funcione</h2>
-    <p class="hint">Primero el endpoint, después una agenda completa de prueba.</p>
+    <p class="hint">Primero el endpoint, después cada uno de los dos avisos.</p>
     <div class="row">
       <button class="ghost" id="ping">Probar endpoint</button>
-      <button class="primary" id="send">Mandar agenda de prueba</button>
+      <button class="primary" id="send-agenda">Probar agenda</button>
+      <button class="primary" id="send-noagenda">Probar survey sin agenda</button>
     </div>
     <div class="result" id="result"></div>
   </div>
@@ -91,12 +92,13 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
   <div class="card">
     <h2>3. Configurá GoHighLevel</h2>
     <ol>
-      <li>En la acción <strong>Webhook</strong>: método <code>POST</code> y la URL de arriba.</li>
-      <li>En <strong>Datos personalizados</strong>, cargá estas siete claves con el
+      <li>En la acción <strong>Webhook</strong>: método <code>POST</code> y la URL de arriba,
+        agregándole <code>?tipo=agenda</code> o <code>?tipo=noagenda</code> según el workflow.</li>
+      <li>En <strong>Datos personalizados</strong>, cargá estas ocho claves con el
         selector de campos (el ícono de etiqueta):</li>
     </ol>
     <div class="keys">
-      <code>nombre</code><code>mail</code><code>telefono</code><code>habilidad</code><code>alumnos</code><code>precio</code><code>programa</code>
+      <code>nombre</code><code>mail</code><code>telefono</code><code>cuando</code><code>habilidad</code><code>alumnos</code><code>precio</code><code>programa</code>
     </div>
     <ol start="3">
       <li>Guardá la acción y <strong>publicá</strong> el workflow (de Borrador a Publicar).</li>
@@ -113,6 +115,14 @@ const urlBox = document.getElementById("url");
 const result = document.getElementById("result");
 
 const fullUrl = () => endpoint;
+
+// Una fecha de cita realista para la prueba: dentro de una semana, 15:00.
+const enUnaSemana = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  d.setHours(15, 0, 0, 0);
+  return d.toISOString();
+};
 
 urlBox.textContent = fullUrl();
 
@@ -144,31 +154,39 @@ document.getElementById("ping").addEventListener("click", async (event) => {
   busy(event.target, false);
 });
 
-document.getElementById("send").addEventListener("click", async (event) => {
+const enviarPrueba = async (event, tipo) => {
   busy(event.target, true);
+  const lead = {
+    nombre: "Ana Prueba",
+    mail: "ana@ejemplo.com",
+    telefono: "+54 9 11 5555-5555",
+    habilidad: "Reparación de crédito",
+    alumnos: "Entre 10 y 50",
+    precio: "Entre $1.000 y $3.000",
+    programa: "Esto es una prueba: si la ves en Discord, ya está todo conectado.",
+  };
+  if (tipo === "agenda") lead.cuando = enUnaSemana();
+
   try {
-    const res = await fetch(fullUrl(), {
+    const res = await fetch(fullUrl() + "?tipo=" + tipo, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nombre: "Ana Prueba",
-        mail: "ana@ejemplo.com",
-        telefono: "+54 9 11 5555-5555",
-        habilidad: "Reparación de crédito",
-        alumnos: "Entre 10 y 50",
-        precio: "Entre $1.000 y $3.000",
-        programa: "Esto es una agenda de prueba: si la ves en Discord, ya está todo conectado.",
-      }),
+      body: JSON.stringify(lead),
     });
     if (res.status === 500) show(false, "Falta la variable DISCORD_WEBHOOK_URL en Netlify (y un redeploy después de cargarla).");
     else if (res.status === 502) show(false, "Discord rechazó el mensaje. Revisá que la URL del webhook siga viva.");
-    else if (res.ok) show(true, "Enviada. Andá a tu canal de Discord: la agenda de Ana Prueba tiene que estar ahí.");
+    else if (res.ok) show(true, "Enviada. Andá a tu canal de Discord: el mensaje de Ana Prueba tiene que estar ahí.");
     else show(false, "Respondió " + res.status + ". Mirá Netlify → Logs → Functions.");
   } catch {
     show(false, "No pude alcanzar el endpoint. ¿Terminó de deployar el sitio?");
   }
   busy(event.target, false);
-});
+};
+
+document.getElementById("send-agenda")
+  .addEventListener("click", (e) => enviarPrueba(e, "agenda"));
+document.getElementById("send-noagenda")
+  .addEventListener("click", (e) => enviarPrueba(e, "noagenda"));
 </script>
 </body>
 </html>

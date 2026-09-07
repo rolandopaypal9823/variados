@@ -7,11 +7,14 @@
  * Variables de entorno (Netlify -> Site configuration -> Environment variables):
  *   DISCORD_WEBHOOK_URL  obligatoria   URL del webhook del canal de Discord
  *   DISCORD_MENTION      opcional      ej. "@here", para que suene la notificacion
+ *   TIMEZONE             opcional      zona horaria para mostrar la fecha de la
+ *                                      cita (default America/Argentina/Buenos_Aires)
+ *   WHATSAPP_TEMPLATE    opcional      mensaje precargado del link de WhatsApp.
+ *                                      Admite {nombre} y {cuando}.
  */
 
 export const config = { path: "/hooks/ghl-discord" };
 
-const ACCENT = 0xc96f45; // naranja FlowScale
 
 /**
  * Los campos del formulario. Cada entrada lista los nombres con los que GHL
@@ -45,9 +48,64 @@ const FIELDS = {
   ],
   email: ["mail", "email", "contact.email"],
   telefono: ["telefono", "phone", "contact.phone"],
-  // Opcional: solo aparece en Discord si lo mapeas en DATOS PERSONALIZADOS.
-  cuando: ["cuando", "fecha", "appointment_start_time", "start_time"],
+  cuando: [
+    "cuando",
+    "fecha",
+    "appointment_start_time",
+    "appointmentstarttime",
+    "start_time",
+    "starttime",
+  ],
 };
+
+/** Rutas anidadas del payload de la cita, por si no se mapea "cuando" a mano. */
+const RUTAS_CITA = [
+  "calendar.startTime",
+  "calendar.start_time",
+  "appointment.startTime",
+  "appointment.start_time",
+];
+
+const TIMEZONE = process.env.TIMEZONE || "America/Argentina/Buenos_Aires";
+
+/**
+ * Los dos escenarios. Cual se usa lo decide el parametro ?tipo= de la URL, asi
+ * cada workflow de GHL apunta a su variante sin configurar nada extra.
+ * Las plantillas admiten {nombre} y {cuando}.
+ */
+const ESCENARIOS = {
+  agenda: {
+    titulo: "\u{1F4C5} NUEVA AGENDA",
+    color: 0xc96f45, // naranja FlowScale
+    pie: "GoHighLevel · Sesión de Claridad",
+    boton: "\u{1F4F2} Escribirle para confirmar",
+    mostrarCuando: true,
+    plantilla:
+      process.env.WHATSAPP_AGENDA ||
+      "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada el {cuando}. " +
+        "Avisame si confirmás así coordinamos la sesión y te explico en detalle cómo ayudarte " +
+        "a elevar el valor y los resultados de tu programa.",
+    plantillaSinFecha:
+      "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada. " +
+      "Avisame si confirmás así coordinamos la sesión y te explico en detalle cómo ayudarte " +
+      "a elevar el valor y los resultados de tu programa.",
+  },
+  noagenda: {
+    titulo: "\u{1F4DD} COMPLETÓ EL SURVEY · SIN AGENDAR",
+    color: 0xd9a441, // ambar, para distinguirlo de un vistazo
+    pie: "GoHighLevel · Survey MKT Content",
+    boton: "\u{1F4F2} Escribirle por WhatsApp",
+    mostrarCuando: false,
+    plantilla:
+      process.env.WHATSAPP_SIN_AGENDA ||
+      "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vimos que te registraste " +
+        "para tener información sobre cómo instalar nuestros módulos de MKT en esta página: " +
+        "https://start.flowscalely.com/mkt\n\n" +
+        "¿Me querés contar un poco sobre qué problema tenés ahora con la adquisición de clientes, " +
+        "tuya y de tus alumnos? Así veo cómo podemos ayudarte y te doy algunas recomendaciones.",
+  },
+};
+ESCENARIOS.noagenda.plantillaSinFecha = ESCENARIOS.noagenda.plantilla;
 
 /** Deja una clave comparable: sin acentos, sin signos, todo junto y en minuscula. */
 const norm = (value) =>
@@ -107,6 +165,73 @@ const field = (name, value, inline = false) => ({
   value: clip(value || "—", 1024),
   inline,
 });
+
+/** Lee una ruta anidada del payload, ej. "calendar.startTime". */
+function leerRuta(payload, ruta) {
+  const valor = ruta
+    .split(".")
+    .reduce((acc, clave) => (acc == null ? acc : acc[clave]), payload);
+  return typeof valor === "string" ? valor.trim() : "";
+}
+
+/** Solo reformateamos lo que es inequivocamente una fecha: ISO o epoch.
+ *  new Date() es tan permisivo que "jueves que viene a las 3" le devuelve una
+ *  fecha valida e inventada, y mostrar una fecha equivocada es peor que
+ *  mostrar el texto crudo. */
+const ES_FECHA = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
+const ES_EPOCH = /^\d{10}(\d{3})?$/;
+
+function formatearFecha(valor) {
+  if (!valor) return "";
+  const texto = String(valor).trim();
+  if (!ES_FECHA.test(texto) && !ES_EPOCH.test(texto)) return texto;
+
+  const fecha = new Date(ES_EPOCH.test(texto) ? Number(texto.padEnd(13, "0")) : texto);
+  if (Number.isNaN(fecha.getTime())) return texto;
+
+  const formateada = new Intl.DateTimeFormat("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: TIMEZONE,
+  }).format(fecha);
+
+  // "viernes, 4 de septiembre, 15:00" -> "viernes 4 de septiembre, 15:00 hs"
+  return `${formateada.replace(",", "")} hs`;
+}
+
+/** encodeURIComponent deja los parentesis sin escapar y esos rompen el link
+ *  markdown del embed, asi que los codificamos a mano. */
+const encodeParaLink = (texto) =>
+  encodeURIComponent(texto).replace(/\(/g, "%28").replace(/\)/g, "%29");
+
+/** Arma el link de WhatsApp con el mensaje precargado. wa.me necesita el
+ *  numero completo con codigo de pais y solo digitos. */
+function linkWhatsApp(escenario, telefono, nombre, cuando) {
+  const digitos = String(telefono).replace(/\D/g, "").replace(/^00/, "");
+  if (digitos.length < 8) return "";
+
+  const plantilla = cuando ? escenario.plantilla : escenario.plantillaSinFecha;
+  const mensaje = plantilla
+    .replaceAll("{nombre}", nombre || "")
+    .replaceAll("{cuando}", cuando || "");
+
+  return `https://wa.me/${digitos}?text=${encodeParaLink(mensaje)}`;
+}
+
+/** Que escenario mostrar. Lo manda el ?tipo= de la URL (un workflow de GHL por
+ *  variante); si no viene, lo inferimos de si hay fecha de cita. */
+function detectarEscenario(url, index, cuando) {
+  const crudo = norm(new URL(url).searchParams.get("tipo") || pick(index, ["tipo"]) || "");
+  if (crudo === "agenda" || crudo === "si") return ESCENARIOS.agenda;
+  if (crudo === "noagenda" || crudo === "sinagenda" || crudo === "no") {
+    return ESCENARIOS.noagenda;
+  }
+  return cuando ? ESCENARIOS.agenda : ESCENARIOS.noagenda;
+}
 
 async function readBody(req) {
   const type = req.headers.get("content-type") || "";
@@ -168,7 +293,14 @@ export default async (req) => {
       .filter(Boolean)
       .join(" ");
 
-  const cuando = pick(index, FIELDS.cuando);
+  const telefono = pick(index, FIELDS.telefono);
+  const cuando = formatearFecha(
+    pick(index, FIELDS.cuando) ||
+      RUTAS_CITA.map((ruta) => leerRuta(payload, ruta)).find(Boolean) ||
+      ""
+  );
+  const escenario = detectarEscenario(req.url, index, cuando);
+  const whatsapp = linkWhatsApp(escenario, telefono, nombre, cuando);
   const preguntas = [
     field("1. ¿Qué habilidad enseña?", pick(index, FIELDS.habilidad)),
     field("2. ¿Cuántos alumnos activos?", pick(index, FIELDS.alumnos)),
@@ -180,17 +312,22 @@ export default async (req) => {
     ...(process.env.DISCORD_MENTION ? { content: process.env.DISCORD_MENTION } : {}),
     embeds: [
       {
-        title: "\u{1F4C5} NUEVA AGENDA",
-        color: ACCENT,
+        title: escenario.titulo,
+        color: escenario.color,
         fields: [
           field("Nombre", nombre, true),
           field("Mail", pick(index, FIELDS.email), true),
-          field("Teléfono", pick(index, FIELDS.telefono), true),
-          ...(cuando ? [field("Cuándo", cuando)] : []),
+          field("Teléfono", telefono, true),
+          ...(escenario.mostrarCuando && cuando
+            ? [field("Cuándo es la llamada", cuando)]
+            : []),
           ...preguntas,
+          ...(whatsapp
+            ? [field("WhatsApp", `[${escenario.boton}](${whatsapp})`)]
+            : []),
         ],
         timestamp: new Date().toISOString(),
-        footer: { text: "GoHighLevel · Sesión de Claridad" },
+        footer: { text: escenario.pie },
       },
     ],
   };
