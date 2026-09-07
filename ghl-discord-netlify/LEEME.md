@@ -124,7 +124,8 @@ distinto al final. Eso es lo único que le dice a la función qué mensaje armar
 
 - **Trigger:** Cita Reservada Por El Cliente, filtrando por el calendario
   *Sesión de Claridad*.
-- **Acción:** Webhook, `POST`, la URL con `?tipo=agenda`.
+- **Acción 1 — Add Tag:** `agendo-sesion`. Es la bandera que lee el Workflow 2.
+- **Acción 2 — Webhook:** `POST`, la URL con `?tipo=agenda`.
 
 Dispara siempre que reservan, agenden a los dos minutos o a los tres días.
 
@@ -133,13 +134,19 @@ Dispara siempre que reservan, agenden a los dos minutos o a los tres días.
 - **Trigger:** Survey Submitted (el survey de MKT Content).
 - **Acción 1 — Esperar:** 30 minutos. Le das tiempo a que agende después de
   completar el survey.
-- **Acción 2 — Condición If/Else:** ¿el contacto tiene una cita en el
-  calendario *Sesión de Claridad*?
+- **Acción 2 — Condición If/Else:** ¿el contacto tiene el tag `agendo-sesion`?
   - **Sí →** cortá acá. El Workflow 1 ya avisó, no hace falta duplicar.
   - **No →** Webhook, `POST`, la URL con `?tipo=noagenda`.
 
 Así nadie se pierde: el que agenda entra por el 1, el que no, cae por el 2
 media hora después.
+
+**Por qué un tag y no la condición de cita:** GHL solo habilita las condiciones
+de *Appointment* cuando el trigger del workflow es de cita. Con `Survey
+Submitted` como trigger aparecen grises y te avisa que agregues un activador de
+cita. No se lo agregues — meterías a los contactos en el Workflow 2 también
+cuando agendan y se te cruzan los dos flujos. Las condiciones de tag, en cambio,
+están disponibles siempre.
 
 ### Los Datos personalizados (los mismos en los dos workflows)
 
