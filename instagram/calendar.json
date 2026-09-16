@@ -1,0 +1,24 @@
+{
+  "timezone": "America/Argentina/Buenos_Aires",
+  "posts": [
+    {
+      "id": "ejemplo-imagen",
+      "status": "draft",
+      "type": "image",
+      "publish_at": "2026-09-22T13:00:00-03:00",
+      "caption": "Un caption de ejemplo.\n\nBorralo cuando cargues contenido real.\n\n#flowscale",
+      "alt_text": "Descripción de la imagen para lectores de pantalla.",
+      "media": ["instagram/media/ejemplo.jpg"]
+    },
+    {
+      "id": "ejemplo-reel",
+      "status": "draft",
+      "type": "reel",
+      "publish_at": "2026-09-24T19:30:00-03:00",
+      "caption": "Reel de ejemplo.",
+      "share_to_feed": true,
+      "cover_url": "",
+      "media": ["instagram/media/ejemplo.mp4"]
+    }
+  ]
+}

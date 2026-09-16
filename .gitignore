@@ -1,0 +1,9 @@
+# Secretos: nunca se commitean.
+.env
+*.env
+!.env.example
+
+# Ruido local
+node_modules/
+.DS_Store
+*.tmp
