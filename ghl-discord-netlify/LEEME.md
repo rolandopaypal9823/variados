@@ -117,12 +117,26 @@ distinto al final. Eso es lo único que le dice a la función qué mensaje armar
 
 La URL lleva dos parametros: `oferta` (cual embudo) y `tipo` (agendo o no).
 
-| Oferta | Workflow | URL |
-| --- | --- | --- |
-| MKT Content | Agendó | `.../hooks/ghl-discord?oferta=mkt&tipo=agenda` |
-| MKT Content | Sin agendar | `.../hooks/ghl-discord?oferta=mkt&tipo=noagenda` |
-| DFY Reparadores | Agendó | `.../hooks/ghl-discord?oferta=dfy&tipo=agenda` |
-| DFY Reparadores | Sin agendar | `.../hooks/ghl-discord?oferta=dfy&tipo=noagenda` |
+| Oferta | Aviso | Quien lo dispara | URL |
+| --- | --- | --- | --- |
+| MKT Content | Agendó | GHL | `.../hooks/ghl-discord?oferta=mkt&tipo=agenda` |
+| MKT Content | Sin agendar | GHL | `.../hooks/ghl-discord?oferta=mkt&tipo=noagenda` |
+| DFY Reparadores | Se registró | la landing | `.../hooks/ghl-discord?oferta=dfy&tipo=registro` |
+| DFY Reparadores | Agendó | GHL | `.../hooks/ghl-discord?oferta=dfy&tipo=agenda` |
+
+Las dos ofertas resuelven lo mismo por caminos distintos, porque el quiz vive
+en lugares distintos:
+
+- **MKT Content** tiene el survey adentro de GHL, asi que los dos avisos salen
+  de GHL: uno al reservar, y otro media hora despues si el contacto no quedo
+  con el tag de agendado.
+- **DFY** tiene el quiz en la landing, asi que la landing avisa el registro en
+  el momento (incluidos los que no califican, que nunca llegan al calendario) y
+  GHL solo avisa cuando alguien reserva. Alcanza con un workflow.
+
+En DFY llegan dos mensajes por cada persona que agenda: el registro primero y
+la agenda despues. Es a proposito — el primero trae las respuestas del quiz y
+el segundo la fecha de la llamada.
 
 Dominio completo: `https://flowscale-hooks.netlify.app`. Sin `?oferta=` asume
 `mkt`, para no romper los workflows viejos.

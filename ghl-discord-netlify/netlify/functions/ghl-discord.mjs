@@ -120,14 +120,14 @@ const OFERTAS = {
         "Avisame si confirmás así la preparo con el caso puntual de tu compañía.",
     },
     noagenda: {
-      titulo: "\u{1F4DD} COMPLETÓ LA APLICACIÓN · SIN AGENDAR",
+      titulo: "\u{1F4DD} NUEVO REGISTRO · DFY",
       plantilla:
         process.env.WHATSAPP_DFY_SIN_AGENDA ||
-        "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vimos que completaste la " +
-          "aplicación para instalar el sistema de adquisición en tu compañía de reparación de " +
-          "crédito, pero no llegaste a elegir horario para la llamada.\n\n" +
-          "¿Querés que te reserve un lugar, o preferís que te cuente primero cómo sería la " +
-          "implementación en tu caso?",
+        "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vi que acabás de completar " +
+          "la aplicación para instalar el sistema de adquisición en tu compañía de reparación " +
+          "de crédito.\n\n" +
+          "¿Querés que coordinemos la llamada de estrategia, o preferís que te cuente primero " +
+          "cómo sería la implementación en tu caso?",
     },
   },
 };
@@ -270,6 +270,7 @@ function detectarEscenario(url, index, cuando) {
   const crudo = norm(new URL(url).searchParams.get("tipo") || pick(index, ["tipo"]) || "");
   if (crudo === "agenda" || crudo === "si") return "agenda";
   if (crudo === "noagenda" || crudo === "sinagenda" || crudo === "no") return "noagenda";
+  if (crudo === "registro" || crudo === "registra") return "noagenda";
   return cuando ? "agenda" : "noagenda";
 }
 
@@ -341,6 +342,11 @@ export default async (req) => {
       ""
   );
 
+  const respuestas = oferta.preguntas.map((pregunta) => [
+    pregunta,
+    pick(index, pregunta.claves),
+  ]);
+
   const tipo = detectarEscenario(req.url, index, cuando);
   const escenario = { ...ESTILO[tipo], ...oferta[tipo] };
   const whatsapp = linkWhatsApp(escenario, telefono, nombre, cuando);
@@ -363,9 +369,9 @@ export default async (req) => {
             .map((extra) => [extra, pick(index, extra.claves)])
             .filter(([, valor]) => valor)
             .map(([extra, valor]) => field(extra.label, valor, extra.inline)),
-          ...oferta.preguntas.map((pregunta) =>
-            field(pregunta.label, pick(index, pregunta.claves))
-          ),
+          ...respuestas.some(([, valor]) => valor)
+            ? respuestas.map(([pregunta, valor]) => field(pregunta.label, valor))
+            : [],
           ...(whatsapp
             ? [field("WhatsApp", `[${escenario.boton}](${whatsapp})`)]
             : []),
