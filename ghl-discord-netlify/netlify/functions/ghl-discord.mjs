@@ -322,12 +322,32 @@ async function sendToDiscord(url, body) {
   return res;
 }
 
+/**
+ * Un POST con Content-Type: application/json desde el navegador no es una
+ * "simple request", asi que el browser manda antes un preflight OPTIONS. Sin
+ * estas cabeceras lo rechaza y el POST real nunca sale: la llamada muere en el
+ * navegador sin llegar nunca a la funcion. GHL no lo sufria porque pega
+ * servidor a servidor, y el panel tampoco porque vive en este mismo dominio.
+ */
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Max-Age": "86400",
+};
+
+const responder = (texto, status = 200) =>
+  new Response(texto, { status, headers: CORS });
+
 export default async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS });
+  }
   if (req.method === "GET") {
-    return new Response("ok, el endpoint esta vivo y esperando el webhook de GHL");
+    return responder("ok, el endpoint esta vivo y esperando el webhook de GHL");
   }
   if (req.method !== "POST") {
-    return new Response("method not allowed", { status: 405 });
+    return responder("method not allowed", 405);
   }
 
   const payload = await readBody(req);
@@ -340,7 +360,7 @@ export default async (req) => {
   const discordUrl = oferta.canal();
   if (!discordUrl) {
     console.error(`Falta la variable de entorno del canal para la oferta "${oferta.nombre}".`);
-    return new Response("missing DISCORD_WEBHOOK_URL", { status: 500 });
+    return responder("missing DISCORD_WEBHOOK_URL", 500);
   }
 
   const nombre =
@@ -402,8 +422,8 @@ export default async (req) => {
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     console.error("Discord rechazo el mensaje:", res.status, detail);
-    return new Response("discord error", { status: 502 });
+    return responder("discord error", 502);
   }
 
-  return new Response("ok");
+  return responder("ok");
 };
