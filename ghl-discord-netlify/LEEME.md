@@ -115,10 +115,42 @@ está andando y solo falta conectar GHL.
 Son **dos workflows**, cada uno apuntando a la misma URL pero con un `?tipo=`
 distinto al final. Eso es lo único que le dice a la función qué mensaje armar.
 
-| Workflow | URL |
+La URL lleva dos parametros: `oferta` (cual embudo) y `tipo` (agendo o no).
+
+| Oferta | Workflow | URL |
+| --- | --- | --- |
+| MKT Content | Agendó | `.../hooks/ghl-discord?oferta=mkt&tipo=agenda` |
+| MKT Content | Sin agendar | `.../hooks/ghl-discord?oferta=mkt&tipo=noagenda` |
+| DFY Reparadores | Agendó | `.../hooks/ghl-discord?oferta=dfy&tipo=agenda` |
+| DFY Reparadores | Sin agendar | `.../hooks/ghl-discord?oferta=dfy&tipo=noagenda` |
+
+Dominio completo: `https://flowscale-hooks.netlify.app`. Sin `?oferta=` asume
+`mkt`, para no romper los workflows viejos.
+
+### Las claves de cada oferta
+
+Los Datos Personalizados cambian segun la oferta. Comunes a las dos:
+`nombre`, `mail`, `telefono` y `cuando` (solo en el workflow de agenda).
+
+| Oferta | Claves de las 4 preguntas | Extras opcionales |
+| --- | --- | --- |
+| `mkt` | `habilidad`, `alumnos`, `precio`, `programa` | — |
+| `dfy` | `facturacion`, `clientes`, `obstaculo`, `timeline` | `empresa`, `califica`, `prioridad` |
+
+Los extras solo aparecen en el mensaje si llegan con valor.
+
+### Canal de Discord por oferta
+
+| Oferta | Variable de entorno |
 | --- | --- |
-| Agendó | `https://flowscale-hooks.netlify.app/hooks/ghl-discord?tipo=agenda` |
-| Completó el survey y no agendó | `https://flowscale-hooks.netlify.app/hooks/ghl-discord?tipo=noagenda` |
+| `mkt` | `DISCORD_WEBHOOK_URL` |
+| `dfy` | `DISCORD_WEBHOOK_DFY` (si no esta, cae a `DISCORD_WEBHOOK_URL`) |
+
+### Agregar una oferta nueva
+
+En `netlify/functions/ghl-discord.mjs`, arriba de todo, esta el objeto
+`OFERTAS`. Agregar una entrada ahi (preguntas, extras, canal y plantillas de
+WhatsApp) alcanza: el resto de la funcion no se toca.
 
 ### Workflow 1 · "Agenda → Discord"
 

@@ -34,7 +34,8 @@ input{
   width:100%;font-family:var(--sans);font-size:.95rem;padding:12px 14px;
   border:1px solid var(--line);border-radius:12px;background:var(--canvas-2);color:var(--ink);
 }
-input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+select{width:100%;font-family:var(--sans);font-size:.95rem;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--canvas-2);color:var(--ink);margin-bottom:4px}
 .url{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
   background:var(--canvas-2);border:1px solid var(--line);border-radius:12px;
@@ -80,7 +81,12 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
 
   <div class="card">
     <h2>2. Probá que funcione</h2>
-    <p class="hint">Primero el endpoint, después cada uno de los dos avisos.</p>
+    <p class="hint">Elegí la oferta y probá cada uno de los dos avisos.</p>
+    <label for="oferta">Oferta</label>
+    <select id="oferta">
+      <option value="mkt">MKT Content · Sesión de Claridad</option>
+      <option value="dfy">DFY · Reparadores de crédito</option>
+    </select>
     <div class="row">
       <button class="ghost" id="ping">Probar endpoint</button>
       <button class="primary" id="send-agenda">Probar agenda</button>
@@ -156,19 +162,35 @@ document.getElementById("ping").addEventListener("click", async (event) => {
 
 const enviarPrueba = async (event, tipo) => {
   busy(event.target, true);
-  const lead = {
-    nombre: "Ana Prueba",
-    mail: "ana@ejemplo.com",
-    telefono: "+54 9 11 5555-5555",
-    habilidad: "Reparación de crédito",
-    alumnos: "Entre 10 y 50",
-    precio: "Entre $1.000 y $3.000",
-    programa: "Esto es una prueba: si la ves en Discord, ya está todo conectado.",
+  const oferta = document.getElementById("oferta").value;
+  const leads = {
+    mkt: {
+      nombre: "Ana Prueba",
+      mail: "ana@ejemplo.com",
+      telefono: "+54 9 11 5555-5555",
+      habilidad: "Reparación de crédito",
+      alumnos: "Entre 10 y 50",
+      precio: "Entre $1.000 y $3.000",
+      programa: "Esto es una prueba: si la ves en Discord, ya está todo conectado.",
+    },
+    dfy: {
+      fullName: "Michael Prueba",
+      email: "michael@ejemplo.com",
+      phone: "+1 424 313 2147",
+      empresa: "CreditFix LLC",
+      facturacion: "$10,001 a $20,000",
+      clientes: "16 a 30 clientes",
+      obstaculo: "Tengo leads, pero el seguimiento es manual o desorganizado",
+      timeline: "En los próximos 30 días",
+      califica: "si",
+      prioridad: "alta",
+    },
   };
+  const lead = { ...leads[oferta] };
   if (tipo === "agenda") lead.cuando = enUnaSemana();
 
   try {
-    const res = await fetch(fullUrl() + "?tipo=" + tipo, {
+    const res = await fetch(fullUrl() + "?oferta=" + oferta + "&tipo=" + tipo, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(lead),

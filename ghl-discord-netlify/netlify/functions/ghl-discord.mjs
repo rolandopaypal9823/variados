@@ -17,35 +17,13 @@ export const config = { path: "/hooks/ghl-discord" };
 
 
 /**
- * Los campos del formulario. Cada entrada lista los nombres con los que GHL
- * puede mandar ese dato: la query key, el nombre del campo o la pregunta
- * entera. La busqueda ignora mayusculas, acentos, puntos y espacios, asi que
- * "P.programa", "programa" y "Contact.Programa" caen todos en el mismo lugar.
+ * Campos comunes a todas las ofertas. Cada entrada lista los nombres con los
+ * que puede llegar ese dato: la clave de Datos Personalizados de GHL, el
+ * nombre del campo, o la clave que manda la landing. La busqueda ignora
+ * mayusculas, acentos y puntos, asi que "P.programa", "programa" y
+ * "Contact.Programa" caen todos en el mismo lugar.
  */
-const FIELDS = {
-  habilidad: [
-    "habilidad",
-    "contact.habilidad",
-    "que habilidad ensenas en tu curso o mentoria",
-  ],
-  alumnos: [
-    "c.alumnos",
-    "alumnos",
-    "contact.alumnos",
-    "cuantos alumnos activos tienes hoy",
-  ],
-  precio: [
-    "precio",
-    "c.precio",
-    "contact.precio",
-    "a cuanto vendes tu programa hoy",
-  ],
-  programa: [
-    "p.programa",
-    "programa",
-    "contact.programa",
-    "que pasa hoy con tus alumnos cuando terminan tu programa",
-  ],
+const COMUNES = {
   email: ["mail", "email", "contact.email"],
   telefono: ["telefono", "phone", "contact.phone"],
   cuando: [
@@ -68,44 +46,97 @@ const RUTAS_CITA = [
 
 const TIMEZONE = process.env.TIMEZONE || "America/Argentina/Buenos_Aires";
 
+const NARANJA = 0xc96f45;
+const AMBAR = 0xd9a441;
+
 /**
- * Los dos escenarios. Cual se usa lo decide el parametro ?tipo= de la URL, asi
- * cada workflow de GHL apunta a su variante sin configurar nada extra.
- * Las plantillas admiten {nombre} y {cuando}.
+ * Las ofertas. La elige el parametro ?oferta= de la URL (default "mkt", para
+ * no romper los workflows que ya estaban apuntando sin ese parametro).
+ *
+ * Cada oferta define sus propias preguntas, su canal de Discord y sus
+ * plantillas de WhatsApp. Agregar una oferta nueva es agregar una entrada
+ * aca: el resto de la funcion no se toca.
  */
-const ESCENARIOS = {
-  agenda: {
-    titulo: "\u{1F4C5} NUEVA AGENDA",
-    color: 0xc96f45, // naranja FlowScale
-    pie: "GoHighLevel · Sesión de Claridad",
-    boton: "\u{1F4F2} Escribirle para confirmar",
-    mostrarCuando: true,
-    plantilla:
-      process.env.WHATSAPP_AGENDA ||
-      "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada el {cuando}. " +
+const OFERTAS = {
+  // Mentoria / modulos de MKT Content
+  mkt: {
+    nombre: "Sesión de Claridad",
+    canal: () => process.env.DISCORD_WEBHOOK_URL,
+    preguntas: [
+      { label: "1. ¿Qué habilidad enseña?", claves: ["habilidad", "contact.habilidad"] },
+      { label: "2. ¿Cuántos alumnos activos?", claves: ["alumnos", "c.alumnos", "contact.alumnos"] },
+      { label: "3. ¿A cuánto vende su programa?", claves: ["precio", "c.precio", "contact.precio"] },
+      { label: "4. ¿Qué pasa con sus alumnos cuando terminan?", claves: ["programa", "p.programa", "contact.programa"] },
+    ],
+    extras: [],
+    agenda: {
+      titulo: "\u{1F4C5} NUEVA AGENDA",
+      plantilla:
+        process.env.WHATSAPP_AGENDA ||
+        "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada el {cuando}. " +
+          "Avisame si confirmás así coordinamos la sesión y te explico en detalle cómo ayudarte " +
+          "a elevar el valor y los resultados de tu programa.",
+      plantillaSinFecha:
+        "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada. " +
         "Avisame si confirmás así coordinamos la sesión y te explico en detalle cómo ayudarte " +
         "a elevar el valor y los resultados de tu programa.",
-    plantillaSinFecha:
-      "Hola {nombre}, acá Samy. Te escribo para confirmar tu llamada agendada. " +
-      "Avisame si confirmás así coordinamos la sesión y te explico en detalle cómo ayudarte " +
-      "a elevar el valor y los resultados de tu programa.",
+    },
+    noagenda: {
+      titulo: "\u{1F4DD} COMPLETÓ EL SURVEY · SIN AGENDAR",
+      plantilla:
+        process.env.WHATSAPP_SIN_AGENDA ||
+        "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vimos que te registraste " +
+          "para tener información sobre cómo instalar nuestros módulos de MKT en esta página: " +
+          "https://start.flowscalely.com/mkt\n\n" +
+          "¿Me querés contar un poco sobre qué problema tenés ahora con la adquisición de clientes, " +
+          "tuya y de tus alumnos? Así veo cómo podemos ayudarte y te doy algunas recomendaciones.",
+    },
   },
-  noagenda: {
-    titulo: "\u{1F4DD} COMPLETÓ EL SURVEY · SIN AGENDAR",
-    color: 0xd9a441, // ambar, para distinguirlo de un vistazo
-    pie: "GoHighLevel · Survey MKT Content",
-    boton: "\u{1F4F2} Escribirle por WhatsApp",
-    mostrarCuando: false,
-    plantilla:
-      process.env.WHATSAPP_SIN_AGENDA ||
-      "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vimos que te registraste " +
-        "para tener información sobre cómo instalar nuestros módulos de MKT en esta página: " +
-        "https://start.flowscalely.com/mkt\n\n" +
-        "¿Me querés contar un poco sobre qué problema tenés ahora con la adquisición de clientes, " +
-        "tuya y de tus alumnos? Así veo cómo podemos ayudarte y te doy algunas recomendaciones.",
+
+  // Sistema Done For You para reparadores de credito (EE. UU.)
+  dfy: {
+    nombre: "DFY · Reparadores de crédito",
+    // Si no cargas DISCORD_WEBHOOK_DFY, cae al canal principal.
+    canal: () => process.env.DISCORD_WEBHOOK_DFY || process.env.DISCORD_WEBHOOK_URL,
+    preguntas: [
+      { label: "1. ¿Cuánto factura al mes?", claves: ["facturacion", "contact.facturacion"] },
+      { label: "2. ¿Cuántos clientes activos?", claves: ["clientes", "contact.clientes"] },
+      { label: "3. ¿Mayor obstáculo para crecer?", claves: ["obstaculo", "contact.obstaculo"] },
+      { label: "4. ¿Qué tan pronto para implementar?", claves: ["timeline", "contact.timeline"] },
+    ],
+    extras: [
+      { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
+      { label: "¿Califica?", claves: ["califica"], inline: true },
+      { label: "Prioridad", claves: ["prioridad"], inline: true },
+    ],
+    agenda: {
+      titulo: "\u{1F4C5} NUEVA AGENDA · DFY",
+      plantilla:
+        process.env.WHATSAPP_DFY_AGENDA ||
+        "Hola {nombre}, acá Samy de Flowscale. Te escribo para confirmar tu llamada de estrategia " +
+          "agendada el {cuando}. Avisame si confirmás así la preparo con el caso puntual de tu compañía.",
+      plantillaSinFecha:
+        "Hola {nombre}, acá Samy de Flowscale. Te escribo para confirmar tu llamada de estrategia. " +
+        "Avisame si confirmás así la preparo con el caso puntual de tu compañía.",
+    },
+    noagenda: {
+      titulo: "\u{1F4DD} COMPLETÓ LA APLICACIÓN · SIN AGENDAR",
+      plantilla:
+        process.env.WHATSAPP_DFY_SIN_AGENDA ||
+        "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vimos que completaste la " +
+          "aplicación para instalar el sistema de adquisición en tu compañía de reparación de " +
+          "crédito, pero no llegaste a elegir horario para la llamada.\n\n" +
+          "¿Querés que te reserve un lugar, o preferís que te cuente primero cómo sería la " +
+          "implementación en tu caso?",
+    },
   },
 };
-ESCENARIOS.noagenda.plantillaSinFecha = ESCENARIOS.noagenda.plantilla;
+
+// Lo que comparten todos los escenarios, para no repetirlo por oferta.
+const ESTILO = {
+  agenda: { color: NARANJA, boton: "\u{1F4F2} Escribirle para confirmar", mostrarCuando: true },
+  noagenda: { color: AMBAR, boton: "\u{1F4F2} Escribirle por WhatsApp", mostrarCuando: false },
+};
 
 /** Deja una clave comparable: sin acentos, sin signos, todo junto y en minuscula. */
 const norm = (value) =>
@@ -214,7 +245,11 @@ function linkWhatsApp(escenario, telefono, nombre, cuando) {
   const digitos = String(telefono).replace(/\D/g, "").replace(/^00/, "");
   if (digitos.length < 8) return "";
 
-  const plantilla = cuando ? escenario.plantilla : escenario.plantillaSinFecha;
+  // plantillaSinFecha es opcional: una oferta que no la define reusa la otra,
+  // y {cuando} queda vacio. Asi agregar una oferta no obliga a escribir dos
+  // versiones de cada mensaje.
+  const plantilla =
+    (cuando ? escenario.plantilla : escenario.plantillaSinFecha) || escenario.plantilla;
   const mensaje = plantilla
     .replaceAll("{nombre}", nombre || "")
     .replaceAll("{cuando}", cuando || "");
@@ -222,15 +257,20 @@ function linkWhatsApp(escenario, telefono, nombre, cuando) {
   return `https://wa.me/${digitos}?text=${encodeParaLink(mensaje)}`;
 }
 
+/** Que oferta es. La manda el ?oferta= de la URL; sin el asumimos "mkt", que
+ *  es la que ya estaba andando antes de que existiera el parametro. */
+function detectarOferta(url, index) {
+  const crudo = norm(new URL(url).searchParams.get("oferta") || pick(index, ["oferta"]) || "");
+  return OFERTAS[crudo] || OFERTAS.mkt;
+}
+
 /** Que escenario mostrar. Lo manda el ?tipo= de la URL (un workflow de GHL por
  *  variante); si no viene, lo inferimos de si hay fecha de cita. */
 function detectarEscenario(url, index, cuando) {
   const crudo = norm(new URL(url).searchParams.get("tipo") || pick(index, ["tipo"]) || "");
-  if (crudo === "agenda" || crudo === "si") return ESCENARIOS.agenda;
-  if (crudo === "noagenda" || crudo === "sinagenda" || crudo === "no") {
-    return ESCENARIOS.noagenda;
-  }
-  return cuando ? ESCENARIOS.agenda : ESCENARIOS.noagenda;
+  if (crudo === "agenda" || crudo === "si") return "agenda";
+  if (crudo === "noagenda" || crudo === "sinagenda" || crudo === "no") return "noagenda";
+  return cuando ? "agenda" : "noagenda";
 }
 
 async function readBody(req) {
@@ -275,38 +315,35 @@ export default async (req) => {
     return new Response("method not allowed", { status: 405 });
   }
 
-  const discordUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!discordUrl) {
-    console.error("Falta la variable DISCORD_WEBHOOK_URL.");
-    return new Response("missing DISCORD_WEBHOOK_URL", { status: 500 });
-  }
-
   const payload = await readBody(req);
   // Queda en los logs de Netlify: es la forma de ver con que nombre exacto
   // llego cada campo personalizado la primera vez que probas el workflow.
   console.log("Payload de GHL:", JSON.stringify(payload));
 
   const index = indexPayload(payload);
+  const oferta = detectarOferta(req.url, index);
+  const discordUrl = oferta.canal();
+  if (!discordUrl) {
+    console.error(`Falta la variable de entorno del canal para la oferta "${oferta.nombre}".`);
+    return new Response("missing DISCORD_WEBHOOK_URL", { status: 500 });
+  }
+
   const nombre =
     pick(index, ["nombre", "full_name", "fullname", "contact_name"]) ||
     [pick(index, ["first_name"]), pick(index, ["last_name"])]
       .filter(Boolean)
       .join(" ");
 
-  const telefono = pick(index, FIELDS.telefono);
+  const telefono = pick(index, COMUNES.telefono);
   const cuando = formatearFecha(
-    pick(index, FIELDS.cuando) ||
+    pick(index, COMUNES.cuando) ||
       RUTAS_CITA.map((ruta) => leerRuta(payload, ruta)).find(Boolean) ||
       ""
   );
-  const escenario = detectarEscenario(req.url, index, cuando);
+
+  const tipo = detectarEscenario(req.url, index, cuando);
+  const escenario = { ...ESTILO[tipo], ...oferta[tipo] };
   const whatsapp = linkWhatsApp(escenario, telefono, nombre, cuando);
-  const preguntas = [
-    field("1. ¿Qué habilidad enseña?", pick(index, FIELDS.habilidad)),
-    field("2. ¿Cuántos alumnos activos?", pick(index, FIELDS.alumnos)),
-    field("3. ¿A cuánto vende su programa?", pick(index, FIELDS.precio)),
-    field("4. ¿Qué pasa con sus alumnos cuando terminan?", pick(index, FIELDS.programa)),
-  ];
 
   const body = {
     ...(process.env.DISCORD_MENTION ? { content: process.env.DISCORD_MENTION } : {}),
@@ -316,18 +353,25 @@ export default async (req) => {
         color: escenario.color,
         fields: [
           field("Nombre", nombre, true),
-          field("Mail", pick(index, FIELDS.email), true),
+          field("Mail", pick(index, COMUNES.email), true),
           field("Teléfono", telefono, true),
           ...(escenario.mostrarCuando && cuando
             ? [field("Cuándo es la llamada", cuando)]
             : []),
-          ...preguntas,
+          // Los extras solo aparecen si llegan: son opcionales por oferta.
+          ...oferta.extras
+            .map((extra) => [extra, pick(index, extra.claves)])
+            .filter(([, valor]) => valor)
+            .map(([extra, valor]) => field(extra.label, valor, extra.inline)),
+          ...oferta.preguntas.map((pregunta) =>
+            field(pregunta.label, pick(index, pregunta.claves))
+          ),
           ...(whatsapp
             ? [field("WhatsApp", `[${escenario.boton}](${whatsapp})`)]
             : []),
         ],
         timestamp: new Date().toISOString(),
-        footer: { text: escenario.pie },
+        footer: { text: `GoHighLevel · ${oferta.nombre}` },
       },
     ],
   };
