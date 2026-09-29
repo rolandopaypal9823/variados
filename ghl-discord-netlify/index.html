@@ -86,6 +86,7 @@ footer{text-align:center;color:var(--mute);font-size:.85rem;margin-top:30px}
     <select id="oferta">
       <option value="mkt">MKT Content · Sesión de Claridad</option>
       <option value="dfy">DFY · Reparadores de crédito</option>
+      <option value="funding">Funding</option>
     </select>
     <div class="row">
       <button class="ghost" id="ping">Probar endpoint</button>
@@ -184,6 +185,15 @@ const enviarPrueba = async (event, tipo) => {
       timeline: "En los próximos 30 días",
       califica: "si",
       prioridad: "alta",
+    },
+    funding: {
+      nombre: "Carlos Prueba",
+      mail: "carlos@ejemplo.com",
+      telefono: "+1 424 313 2147",
+      situacion_actual: "Ya corro anuncios con formulario / landing",
+      dolores: "Me la paso filtrando y persiguiendo prospectos a mano",
+      ingresos: "Sí, es mi negocio principal y a tiempo completo",
+      compromiso_de_inversion: "Sí, lo haría si se alinea con lo que estoy buscando en este momento",
     },
   };
   const lead = { ...leads[oferta] };

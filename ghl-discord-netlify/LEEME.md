@@ -123,6 +123,8 @@ La URL lleva dos parametros: `oferta` (cual embudo) y `tipo` (agendo o no).
 | MKT Content | Sin agendar | GHL | `.../hooks/ghl-discord?oferta=mkt&tipo=noagenda` |
 | DFY Reparadores | Se registró | la landing | `.../hooks/ghl-discord?oferta=dfy&tipo=registro` |
 | DFY Reparadores | Agendó | GHL | `.../hooks/ghl-discord?oferta=dfy&tipo=agenda` |
+| Funding | Se registró | donde viva el quiz | `.../hooks/ghl-discord?oferta=funding&tipo=registro` |
+| Funding | Agendó | GHL | `.../hooks/ghl-discord?oferta=funding&tipo=agenda` |
 
 Las dos ofertas resuelven lo mismo por caminos distintos, porque el quiz vive
 en lugares distintos:
@@ -149,7 +151,11 @@ Los Datos Personalizados cambian segun la oferta. Comunes a las dos:
 | Oferta | Claves de las 4 preguntas | Extras opcionales |
 | --- | --- | --- |
 | `mkt` | `habilidad`, `alumnos`, `precio`, `programa` | — |
-| `dfy` | `facturacion`, `clientes`, `obstaculo`, `timeline` | `empresa`, `califica`, `prioridad` |
+| `dfy` | `facturacion`, `clientes`, `obstaculo`, `timeline` | los de abajo |
+| `funding` | `situacion_actual`, `dolores`, `ingresos`, `compromiso_de_inversion` | los de abajo |
+
+Extras opcionales, disponibles para cualquier oferta: `empresa`, `califica`,
+`prioridad`, `valor_estimado`.
 
 Los extras solo aparecen en el mensaje si llegan con valor.
 
@@ -158,7 +164,10 @@ Los extras solo aparecen en el mensaje si llegan con valor.
 | Oferta | Variable de entorno |
 | --- | --- |
 | `mkt` | `DISCORD_WEBHOOK_URL` |
-| `dfy` | `DISCORD_WEBHOOK_DFY` (si no esta, cae a `DISCORD_WEBHOOK_URL`) |
+| `dfy` | `DISCORD_WEBHOOK_DFY` |
+| `funding` | `DISCORD_WEBHOOK_FUNDING` |
+
+Si la variable de una oferta no esta cargada, cae al canal principal.
 
 ### Agregar una oferta nueva
 

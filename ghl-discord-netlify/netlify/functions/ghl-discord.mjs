@@ -57,6 +57,22 @@ const AMBAR = 0xd9a441;
  * plantillas de WhatsApp. Agregar una oferta nueva es agregar una entrada
  * aca: el resto de la funcion no se toca.
  */
+/**
+ * Datos que algunas ofertas mandan y otras no. Cada uno aparece solo si llega
+ * con valor, asi que compartirlos entre ofertas no ensucia a la que no los usa.
+ */
+const EXTRAS_OPCIONALES = [
+  { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
+  { label: "¿Califica?", claves: ["califica"], inline: true },
+  { label: "Prioridad", claves: ["prioridad"], inline: true },
+  {
+    label: "Valor estimado",
+    claves: ["valorestimado", "valor_estimado", "contact.valor_estimado"],
+    inline: true,
+    moneda: true,
+  },
+];
+
 const OFERTAS = {
   // Mentoria / modulos de MKT Content
   mkt: {
@@ -68,7 +84,7 @@ const OFERTAS = {
       { label: "3. ¿A cuánto vende su programa?", claves: ["precio", "c.precio", "contact.precio"] },
       { label: "4. ¿Qué pasa con sus alumnos cuando terminan?", claves: ["programa", "p.programa", "contact.programa"] },
     ],
-    extras: [],
+    extras: EXTRAS_OPCIONALES,
     agenda: {
       titulo: "\u{1F4C5} NUEVA AGENDA",
       plantilla:
@@ -104,17 +120,7 @@ const OFERTAS = {
       { label: "3. ¿Mayor obstáculo para crecer?", claves: ["obstaculo", "contact.obstaculo"] },
       { label: "4. ¿Qué tan pronto para implementar?", claves: ["timeline", "contact.timeline"] },
     ],
-    extras: [
-      { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
-      { label: "¿Califica?", claves: ["califica"], inline: true },
-      { label: "Prioridad", claves: ["prioridad"], inline: true },
-      {
-        label: "Valor estimado",
-        claves: ["valorestimado", "valor_estimado", "contact.valor_estimado"],
-        inline: true,
-        moneda: true,
-      },
-    ],
+    extras: EXTRAS_OPCIONALES,
     agenda: {
       titulo: "\u{1F4C5} NUEVA AGENDA · DFY",
       plantilla:
@@ -136,7 +142,53 @@ const OFERTAS = {
           "cómo sería la implementación en tu caso?",
     },
   },
+  // Escalar un negocio de funding
+  funding: {
+    nombre: "Funding",
+    canal: () => process.env.DISCORD_WEBHOOK_FUNDING || process.env.DISCORD_WEBHOOK_URL,
+    preguntas: [
+      {
+        label: "1. ¿Cómo consigue clientes hoy?",
+        claves: ["situacion_actual", "situacionactual", "contact.situacion_actual"],
+      },
+      {
+        label: "2. ¿Qué lo frena para escalar?",
+        claves: ["dolores", "contact.dolores"],
+      },
+      {
+        label: "3. ¿El funding es su ingreso principal?",
+        claves: ["ingresos", "contact.ingresos"],
+      },
+      {
+        label: "4. ¿Está en posición de invertir?",
+        claves: ["compromiso_de_inversion", "compromisodeinversion", "contact.compromiso_de_inversion"],
+      },
+    ],
+    extras: EXTRAS_OPCIONALES,
+    agenda: {
+      titulo: "\u{1F4C5} NUEVA AGENDA · FUNDING",
+      plantilla:
+        process.env.WHATSAPP_FUNDING_AGENDA ||
+        "Hola {nombre}, acá Samy de Flowscale. Te escribo para confirmar tu llamada agendada " +
+          "el {cuando}. Avisame si confirmás así la preparo con el caso puntual de tu negocio " +
+          "de funding.",
+      plantillaSinFecha:
+        "Hola {nombre}, acá Samy de Flowscale. Te escribo para confirmar tu llamada. Avisame si " +
+        "confirmás así la preparo con el caso puntual de tu negocio de funding.",
+    },
+    noagenda: {
+      titulo: "\u{1F4DD} NUEVO REGISTRO · FUNDING",
+      plantilla:
+        process.env.WHATSAPP_FUNDING_SIN_AGENDA ||
+        "Hola {nombre}, por acá Rolando del equipo de Samy Bruttman. Vi que acabás de completar " +
+          "la aplicación para volver predecible la adquisición de clientes en tu negocio de " +
+          "funding.\n\n" +
+          "¿Querés que coordinemos la llamada, o preferís que te cuente primero cómo sería en " +
+          "tu caso?",
+    },
+  },
 };
+
 
 // Lo que comparten todos los escenarios, para no repetirlo por oferta.
 const ESTILO = {
