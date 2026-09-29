@@ -108,6 +108,12 @@ const OFERTAS = {
       { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
       { label: "¿Califica?", claves: ["califica"], inline: true },
       { label: "Prioridad", claves: ["prioridad"], inline: true },
+      {
+        label: "Valor estimado",
+        claves: ["valorestimado", "valor_estimado", "contact.valor_estimado"],
+        inline: true,
+        moneda: true,
+      },
     ],
     agenda: {
       titulo: "\u{1F4C5} NUEVA AGENDA · DFY",
@@ -186,6 +192,14 @@ function pick(index, names) {
   }
   return "";
 }
+
+/** El valor estimado llega como numero pelado (7500); en dolares se lee mejor. */
+const comoMoneda = (valor) => {
+  const numero = Number(String(valor).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(numero) && numero > 0
+    ? numero.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+    : valor;
+};
 
 const clip = (text, max) =>
   text.length > max ? `${text.slice(0, max - 1)}…` : text;
@@ -368,7 +382,9 @@ export default async (req) => {
           ...oferta.extras
             .map((extra) => [extra, pick(index, extra.claves)])
             .filter(([, valor]) => valor)
-            .map(([extra, valor]) => field(extra.label, valor, extra.inline)),
+            .map(([extra, valor]) =>
+              field(extra.label, extra.moneda ? comoMoneda(valor) : valor, extra.inline)
+            ),
           ...respuestas.some(([, valor]) => valor)
             ? respuestas.map(([pregunta, valor]) => field(pregunta.label, valor))
             : [],
