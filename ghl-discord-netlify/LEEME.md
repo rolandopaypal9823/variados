@@ -154,8 +154,11 @@ Los Datos Personalizados cambian segun la oferta. Comunes a las dos:
 | `dfy` | `facturacion`, `clientes`, `obstaculo`, `timeline` | los de abajo |
 | `funding` | `situacion_actual`, `dolores`, `ingresos`, `compromiso_de_inversion` | los de abajo |
 
-Extras opcionales, disponibles para cualquier oferta: `empresa`, `califica`,
-`prioridad`, `valor_estimado`.
+Extras opcionales, disponibles para cualquier oferta: `empresa`, `instagram`,
+`califica`, `prioridad`, `valor_estimado`.
+
+`instagram` se muestra como link clickeable al perfil. Acepta `@usuario`,
+`usuario` o el link entero y se queda con el usuario.
 
 Los extras solo aparecen en el mensaje si llegan con valor.
 

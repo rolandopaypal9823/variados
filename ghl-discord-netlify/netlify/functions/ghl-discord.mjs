@@ -57,19 +57,49 @@ const AMBAR = 0xd9a441;
  * plantillas de WhatsApp. Agregar una oferta nueva es agregar una entrada
  * aca: el resto de la funcion no se toca.
  */
+/** El valor estimado llega como numero pelado (7500); en dolares se lee mejor. */
+const comoMoneda = (valor) => {
+  const numero = Number(String(valor).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(numero) && numero > 0
+    ? numero.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
+    : valor;
+};
+
+/**
+ * El usuario de Instagram puede llegar como "@juan", "juan" o el link entero
+ * del perfil, segun si viene de la landing (que ya lo normaliza) o de un campo
+ * de GHL cargado a mano. Lo dejamos en usuario pelado y armamos el link, para
+ * poder abrir el perfil de un clic desde Discord.
+ */
+const comoInstagram = (valor) => {
+  const usuario = String(valor)
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "") // el protocolo puede faltar
+    .replace(/^@+/, "")
+    .split(/[/?#\s]/)[0]
+    .toLowerCase();
+  return usuario ? `[@${usuario}](https://instagram.com/${usuario})` : "";
+};
+
 /**
  * Datos que algunas ofertas mandan y otras no. Cada uno aparece solo si llega
  * con valor, asi que compartirlos entre ofertas no ensucia a la que no los usa.
  */
 const EXTRAS_OPCIONALES = [
   { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
+  {
+    label: "Instagram",
+    claves: ["instagram", "contact.instagram", "usuario_instagram"],
+    inline: true,
+    formato: comoInstagram,
+  },
   { label: "¿Califica?", claves: ["califica"], inline: true },
   { label: "Prioridad", claves: ["prioridad"], inline: true },
   {
     label: "Valor estimado",
     claves: ["valorestimado", "valor_estimado", "contact.valor_estimado"],
     inline: true,
-    moneda: true,
+    formato: comoMoneda,
   },
 ];
 
@@ -244,14 +274,6 @@ function pick(index, names) {
   }
   return "";
 }
-
-/** El valor estimado llega como numero pelado (7500); en dolares se lee mejor. */
-const comoMoneda = (valor) => {
-  const numero = Number(String(valor).replace(/[^0-9.]/g, ""));
-  return Number.isFinite(numero) && numero > 0
-    ? numero.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })
-    : valor;
-};
 
 const clip = (text, max) =>
   text.length > max ? `${text.slice(0, max - 1)}…` : text;
@@ -455,7 +477,7 @@ export default async (req) => {
             .map((extra) => [extra, pick(index, extra.claves)])
             .filter(([, valor]) => valor)
             .map(([extra, valor]) =>
-              field(extra.label, extra.moneda ? comoMoneda(valor) : valor, extra.inline)
+              field(extra.label, extra.formato ? extra.formato(valor) : valor, extra.inline)
             ),
           ...respuestas.some(([, valor]) => valor)
             ? respuestas.map(([pregunta, valor]) => field(pregunta.label, valor))
