@@ -76,20 +76,21 @@ const comoInstagram = (valor) => {
     .trim()
     .replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "") // el protocolo puede faltar
     .replace(/^@+/, "")
-    .split(/[/?#\s]/)[0]
+    // Corta el path y el query del link, pero NO el espacio: si cortara ahi,
+    // "no tengo instagram" se volveria el usuario "no" y pasaria la validacion.
+    .split(/[/?#]/)[0]
+    .trim()
     .toLowerCase();
-  return usuario ? `[@${usuario}](https://instagram.com/${usuario})` : "";
+  // Si no parece un usuario, mejor mostrar el texto crudo que un link roto.
+  if (!/^[a-z0-9._]{1,30}$/.test(usuario)) return valor;
+  return `[@${usuario}](https://instagram.com/${usuario})`;
 };
 
-/**
- * Datos que algunas ofertas mandan y otras no. Cada uno aparece solo si llega
- * con valor, asi que compartirlos entre ofertas no ensucia a la que no los usa.
- */
 const EXTRAS_OPCIONALES = [
   { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
   {
     label: "Instagram",
-    claves: ["instagram", "contact.instagram", "usuario_instagram"],
+    claves: ["instagram", "contact.instagram", "instagram_usuario", "usuario_instagram"],
     inline: true,
     formato: comoInstagram,
   },
