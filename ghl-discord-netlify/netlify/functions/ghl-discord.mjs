@@ -63,6 +63,12 @@ const AMBAR = 0xd9a441;
  */
 const EXTRAS_OPCIONALES = [
   { label: "Empresa", claves: ["empresa", "contact.empresa", "companyname"], inline: true },
+  {
+    label: "Instagram",
+    claves: ["instagram", "contact.instagram", "instagram_usuario"],
+    inline: true,
+    instagram: true,
+  },
   { label: "¿Califica?", claves: ["califica"], inline: true },
   { label: "Prioridad", claves: ["prioridad"], inline: true },
   {
@@ -243,6 +249,18 @@ function pick(index, names) {
     }
   }
   return "";
+}
+
+/** Deja solo el usuario de Instagram aunque llegue como "@usuario" o como el
+ *  link del perfil, y lo devuelve como link clickeable al perfil. */
+function comoInstagram(valor) {
+  const usuario = String(valor)
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/^@+/, "")
+    .split(/[/?#\s]/)[0];
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(usuario)) return valor;
+  return `[@${usuario}](https://instagram.com/${usuario})`;
 }
 
 /** El valor estimado llega como numero pelado (7500); en dolares se lee mejor. */
@@ -455,7 +473,11 @@ export default async (req) => {
             .map((extra) => [extra, pick(index, extra.claves)])
             .filter(([, valor]) => valor)
             .map(([extra, valor]) =>
-              field(extra.label, extra.moneda ? comoMoneda(valor) : valor, extra.inline)
+              field(
+                extra.label,
+                extra.moneda ? comoMoneda(valor) : extra.instagram ? comoInstagram(valor) : valor,
+                extra.inline
+              )
             ),
           ...respuestas.some(([, valor]) => valor)
             ? respuestas.map(([pregunta, valor]) => field(pregunta.label, valor))
