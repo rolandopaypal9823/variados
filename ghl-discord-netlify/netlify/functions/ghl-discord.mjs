@@ -145,11 +145,19 @@ const OFERTAS = {
     nombre: "DFY · Reparadores de crédito",
     // Si no cargas DISCORD_WEBHOOK_DFY, cae al canal principal.
     canal: () => process.env.DISCORD_WEBHOOK_DFY || process.env.DISCORD_WEBHOOK_URL,
+    // Las 3 preguntas del quiz de la landing (popup). Son los campos ocultos
+    // del Form DFY; en el workflow de agenda van como Datos Personalizados
+    // con estas mismas claves.
     preguntas: [
-      { label: "1. ¿Cuánto factura al mes?", claves: ["facturacion", "contact.facturacion"] },
-      { label: "2. ¿Cuántos clientes activos?", claves: ["clientes", "contact.clientes"] },
-      { label: "3. ¿Mayor obstáculo para crecer?", claves: ["obstaculo", "contact.obstaculo"] },
-      { label: "4. ¿Qué tan pronto para implementar?", claves: ["timeline", "contact.timeline"] },
+      { label: "1. ¿Cuánto facturó el último mes?", claves: ["facturacion", "contact.facturacion"] },
+      {
+        label: "2. ¿Cuello de botella número 1?",
+        claves: ["cuello_de_botella", "cuellodebotella", "contact.cuello_de_botella"],
+      },
+      {
+        label: "3. ¿Considera trabajar con un equipo de marketing?",
+        claves: ["considerando_equipo", "considerandoequipo", "contact.considerando_equipo"],
+      },
     ],
     extras: EXTRAS_OPCIONALES,
     agenda: {

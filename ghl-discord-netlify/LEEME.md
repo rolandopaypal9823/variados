@@ -151,7 +151,7 @@ Los Datos Personalizados cambian segun la oferta. Comunes a las dos:
 | Oferta | Claves de las 4 preguntas | Extras opcionales |
 | --- | --- | --- |
 | `mkt` | `habilidad`, `alumnos`, `precio`, `programa` | — |
-| `dfy` | `facturacion`, `clientes`, `obstaculo`, `timeline` | los de abajo |
+| `dfy` | `facturacion`, `cuello_de_botella`, `considerando_equipo` | los de abajo |
 | `funding` | `situacion_actual`, `dolores`, `ingresos`, `compromiso_de_inversion` | los de abajo |
 
 Extras opcionales, disponibles para cualquier oferta: `empresa`, `instagram`,
